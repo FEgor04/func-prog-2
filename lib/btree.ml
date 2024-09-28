@@ -16,6 +16,7 @@ module type Dict = sig
   val to_list : 'a t -> (key * 'a) list
   val map : (key -> 'a -> 'b) -> 'a t -> 'b t
   val fold_left : ('acc -> key * 'a -> 'acc) -> 'acc -> 'a t -> 'acc
+  val union : 'a t -> 'a t -> 'a t
 end
 
 module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
@@ -34,6 +35,16 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
         Node { l = t.l; k = t.k; v = t.v; r = add t.r key value }
     | Node t when Ord.compare t.k key == 0 ->
         Node { l = t.l; k = t.k; v = value; r = t.r }
+    | _ -> Empty
+
+  let rec add_preserve t key value =
+    match t with
+    | Empty -> Node { l = Empty; k = key; v = value; r = Empty }
+    | Node t when Ord.compare t.k key == -1 ->
+        Node { l = add_preserve t.l key value; k = t.k; v = t.v; r = t.r }
+    | Node t when Ord.compare t.k key == 1 ->
+        Node { l = t.l; k = t.k; v = t.v; r = add_preserve t.r key value }
+    | Node t when Ord.compare t.k key == 0 -> Node t
     | _ -> Empty
 
   let rec length t =
@@ -62,4 +73,9 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
     match t with
     | Node { l; k; v; r } -> fold_left f (f (fold_left f acc l) (k, v)) r
     | Empty -> acc
+
+  let rec union d1 d2 =
+    match d2 with
+    | Node { l; r; k; v } -> union (union (add_preserve d1 k v) l) r
+    | Empty -> d1
 end

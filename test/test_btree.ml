@@ -44,6 +44,39 @@ let fold_left_to_list () =
   in
   Alcotest.(check (list int)) "should be equal" expected actual
 
+let union_distinct () =
+  let to_assoc a = (a, a) in
+  let l1 = [ 1; 2; 3; 4 ] |> List.map to_assoc in
+  let l2 = [ 5; 6; 7; 8 ] |> List.map to_assoc in
+  let expected = [ 1; 2; 3; 4; 5; 6; 7; 8 ] |> List.map to_assoc in
+  let actual =
+    IntDict.union (IntDict.of_list l1) (IntDict.of_list l2) |> IntDict.to_list
+  in
+  Alcotest.(check (list (pair int int))) "should be equal" expected actual
+
+let union_intersection () =
+  let to_assoc a = (a, a) in
+  let l1 = [ 1; 2; 3; 4 ] |> List.map to_assoc in
+  let l2 = [ 3; 4; 5; 6 ] |> List.map to_assoc in
+  let expected = [ 1; 2; 3; 4; 5; 6 ] |> List.map to_assoc in
+  let actual =
+    IntDict.union (IntDict.of_list l1) (IntDict.of_list l2) |> IntDict.to_list
+  in
+  Alcotest.(check (list (pair int int))) "should be equal" expected actual
+
+let union_intersection_different () =
+  let to_assoc1 a = (a, a) in
+  let to_assoc2 a = (a, 2 * a) in
+  let l1 = [ 1; 2; 3; 4 ] |> List.map to_assoc1 in
+  let l2 = [ 3; 4; 5; 6 ] |> List.map to_assoc2 in
+  let expected =
+    ([ 1; 2; 3; 4 ] |> List.map to_assoc1) @ ([ 5; 6 ] |> List.map to_assoc2)
+  in
+  let actual =
+    IntDict.union (IntDict.of_list l1) (IntDict.of_list l2) |> IntDict.to_list
+  in
+  Alcotest.(check (list (pair int int))) "should be equal" expected actual
+
 let () =
   let open Alcotest in
   run "Btree test"
@@ -56,5 +89,10 @@ let () =
           test_case "map with square" `Quick map_to_list;
           test_case "fold sum" `Quick fold_left_sum;
           test_case "fold to list" `Quick fold_left_to_list;
+          test_case "union of distinct ints" `Quick union_distinct;
+          test_case "union of intersection with same values" `Quick
+            union_intersection;
+          test_case "union of intersection with different values" `Quick
+            union_intersection_different;
         ] );
     ]

@@ -4,6 +4,12 @@ module type OrderedType = sig
   val compare : t -> t -> int
 end
 
+(** Proof that [Dict] is a monoid.
+  Consider M to be a set of all possible finite dictionaries with same key and value type.`
+  Consider a [union] to be a binary operation on M.
+  It is obviously associative: (x ∪ y) ∪ z = x ∪ (y ∪ z)
+  A neutral element is [Dict.Empty]: x ∪ {} = x
+    *)
 module type Dict = sig
   type key
   type 'a t
@@ -26,6 +32,7 @@ module type Dict = sig
   val to_list : 'a t -> (key * 'a) list
   val map : (key -> 'a -> 'b) -> 'a t -> 'b t
   val fold_left : ('acc -> key * 'a -> 'acc) -> 'acc -> 'a t -> 'acc
+  val union : 'a t -> 'a t -> 'a t
 end
 
 module Make (Ord : OrderedType) : Dict with type key = Ord.t
