@@ -27,8 +27,14 @@ let to_list_sorted () =
 let map_to_list () =
   Alcotest.(check (list (pair int int)))
     "should be equal"
-    (lst |> List.map (fun (k, v) -> (k, v*v)))
+    (lst |> List.map (fun (k, v) -> (k, v * v)))
     (lst |> IntDict.of_list |> IntDict.map (fun _ v -> v * v) |> IntDict.to_list)
+
+let fold_left_sum () =
+  Alcotest.(check int)
+    "should be equal"
+    (lst |> List.fold_left (fun acc (_, b) -> acc + b) 0)
+    (lst |> IntDict.of_list |> IntDict.fold_left (fun acc (_, b) -> acc + b) 0)
 
 let () =
   let open Alcotest in
@@ -40,5 +46,6 @@ let () =
           test_case "Test to_list" `Quick to_list_equals;
           test_case "to_list returns sorted" `Quick to_list_sorted;
           test_case "map with square" `Quick map_to_list;
+          test_case "fold sum" `Quick fold_left_sum;
         ] );
     ]

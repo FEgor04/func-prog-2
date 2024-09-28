@@ -14,7 +14,8 @@ module type Dict = sig
   val length : 'a t -> int
   val of_list : (key * 'a) list -> 'a t
   val to_list : 'a t -> (key * 'a) list
-  val map: (key -> 'a -> 'b) -> 'a t -> 'b t
+  val map : (key -> 'a -> 'b) -> 'a t -> 'b t
+  val fold_left : ('acc -> key * 'a -> 'acc) -> 'acc -> 'a t -> 'acc
 end
 
 module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
@@ -52,7 +53,13 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
 
   let to_list t = acc_to_list t [] |> List.rev
 
-  let rec map f t = match t with 
-  | Node n -> Node { l = map f n.l; r = map f n.r; k = n.k; v = f n.k n.v } 
-  | _ -> Empty
+  let rec map f t =
+    match t with
+    | Node n -> Node { l = map f n.l; r = map f n.r; k = n.k; v = f n.k n.v }
+    | Empty -> Empty
+
+  let rec fold_left f acc t =
+    match t with
+    | Node { l; k; v; r } -> fold_left f (f (fold_left f acc l) (k, v)) r
+    | Empty -> acc
 end

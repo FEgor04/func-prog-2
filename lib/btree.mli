@@ -24,8 +24,8 @@ module type Dict = sig
   (** Creates a new tree from given list **)
 
   val to_list : 'a t -> (key * 'a) list
-
-  val map: (key -> 'a -> 'b) -> 'a t -> 'b t
+  val map : (key -> 'a -> 'b) -> 'a t -> 'b t
+  val fold_left : ('acc -> key * 'a -> 'acc) -> 'acc -> 'a t -> 'acc
 end
 
 module Make (Ord : OrderedType) : Dict with type key = Ord.t
