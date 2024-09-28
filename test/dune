@@ -1,2 +1,2 @@
 (test
- (name test_func_prog_2) (libraries alcotest qcheck qcheck-alcotest))
+ (name test_btree) (libraries alcotest qcheck qcheck-alcotest btree))

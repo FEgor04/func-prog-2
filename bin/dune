@@ -1,4 +1,4 @@
 (executable
  (public_name func_prog_2)
  (name main)
- (libraries func_prog_2))
+ (libraries btree))

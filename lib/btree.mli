@@ -6,20 +6,22 @@ end
 
 module type Dict = sig
   type key
-  type value
-  type t
+  type 'a t
 
-  val empty : t
+  val empty : 'a t
   (** Empty dictionary **)
 
-  val is_empty : t -> bool
+  val is_empty : 'a t -> bool
   (** Checks if given dictionary is empty **)
 
-  val add : t -> key -> value -> t
+  val add : 'a t -> key -> 'a -> 'a t
   (** Adds new key=value pair to given dictionary **)
 
-  val length : t -> int
+  val length : 'a t -> int
   (** Returns number of elemnst in given dictionary *)
+
+  val of_list : (key * 'a) list -> 'a t
+  (** Creates a new tree from given list **)
 end
 
 module Make (Ord : OrderedType) : Dict with type key = Ord.t

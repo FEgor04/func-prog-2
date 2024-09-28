@@ -6,19 +6,19 @@ end
 
 module type Dict = sig
   type key
-  type value
-  type t
+  type 'a t
 
-  val empty : t
-  val is_empty : t -> bool
-  val add : t -> key -> value -> t
-  val length : t -> int
+  val empty : 'a t
+  val is_empty : 'a t -> bool
+  val add : 'a t -> key -> 'a -> 'a t
+  val length : 'a t -> int
+  val of_list : (key * 'a) list -> 'a t
 end
+
 
 module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
   type key = Ord.t
-  type value
-  type t = Empty | Node of { l : t; k : key; v : value; r : t }
+  type 'a t = Empty | Node of { l : 'a t; k : key; v : 'a; r : 'a t }
 
   let empty = Empty
   let is_empty t = match t with Empty -> true | _ -> false
@@ -36,4 +36,10 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
 
   let rec length t =
     match t with Node n -> 1 + length n.l + length n.r | _ -> 0
+
+  let rec tail_of_list lst acc = match lst with
+    | [] -> acc
+    | (key, value) :: tl -> tail_of_list tl (add acc key value)
+
+  let of_list lst = tail_of_list lst Empty
 end

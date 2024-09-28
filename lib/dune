@@ -1,2 +1,2 @@
 (library
- (name func_prog_2))
+ (name btree))
