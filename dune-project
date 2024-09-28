@@ -19,7 +19,7 @@
  (name func_prog_2)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune)
+ (depends ocaml dune (alcotest :with-test) qcheck qcheck-alcotest)
  (tags
   (topics "to describe" your project)))
 
