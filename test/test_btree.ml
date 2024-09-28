@@ -36,16 +36,25 @@ let fold_left_sum () =
     (lst |> List.fold_left (fun acc (_, b) -> acc + b) 0)
     (lst |> IntDict.of_list |> IntDict.fold_left (fun acc (_, b) -> acc + b) 0)
 
+let fold_left_to_list () =
+  let lst = lst_unsorted in
+  let expected = lst |> List.map (fun (_, v) -> v) |> List.sort Int.compare in
+  let actual =
+    lst |> IntDict.of_list |> IntDict.fold_left (fun acc (_, b) -> b :: acc) []
+  in
+  Alcotest.(check (list int)) "should be equal" expected actual
+
 let () =
   let open Alcotest in
   run "Btree test"
     [
       ( "suite",
         [
-          test_case "Test" `Quick of_list_length;
-          test_case "Test to_list" `Quick to_list_equals;
+          test_case "add + length test" `Quick of_list_length;
+          test_case "to_list equals to expected" `Quick to_list_equals;
           test_case "to_list returns sorted" `Quick to_list_sorted;
           test_case "map with square" `Quick map_to_list;
           test_case "fold sum" `Quick fold_left_sum;
+          test_case "fold to list" `Quick fold_left_to_list;
         ] );
     ]
