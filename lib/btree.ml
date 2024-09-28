@@ -13,8 +13,8 @@ module type Dict = sig
   val add : 'a t -> key -> 'a -> 'a t
   val length : 'a t -> int
   val of_list : (key * 'a) list -> 'a t
+  val to_list : 'a t -> (key * 'a) list
 end
-
 
 module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
   type key = Ord.t
@@ -37,9 +37,17 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
   let rec length t =
     match t with Node n -> 1 + length n.l + length n.r | _ -> 0
 
-  let rec tail_of_list lst acc = match lst with
+  let rec tail_of_list lst acc =
+    match lst with
     | [] -> acc
     | (key, value) :: tl -> tail_of_list tl (add acc key value)
 
   let of_list lst = tail_of_list lst Empty
+
+  let rec acc_to_list t acc =
+    match t with
+    | Empty -> acc
+    | Node n -> acc_to_list n.l [] @ acc @ [ (n.k, n.v) ] @ acc_to_list n.r []
+
+  let to_list t = acc_to_list t [] |> List.rev
 end

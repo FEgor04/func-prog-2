@@ -22,6 +22,8 @@ module type Dict = sig
 
   val of_list : (key * 'a) list -> 'a t
   (** Creates a new tree from given list **)
+
+  val to_list : 'a t -> (key * 'a) list
 end
 
 module Make (Ord : OrderedType) : Dict with type key = Ord.t
