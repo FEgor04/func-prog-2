@@ -20,11 +20,11 @@ jobs:
       - name: Set-up OCaml
         uses: ocaml/setup-ocaml@v3
         with:
-          ocaml-compiler: 4.14
+          ocaml-compiler: 5.2
 
       - run: opam install . --deps-only --with-test
       - run: opam install zanuda
 
-      - run: opam exec -- dune build @fmt @check @runtest -j3
+      - run: opam exec -- dune build @fmt @check @runtest -j4
       - run: opam exec -- dune runtest
-      - run: opam exec -- zanuda -no-top_file_license -no-check-filesystem -dir .
+      - run: opam exec -- zanuda -dir .
