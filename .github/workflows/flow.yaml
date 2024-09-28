@@ -20,7 +20,7 @@ jobs:
       - name: Set-up OCaml
         uses: ocaml/setup-ocaml@v3
         with:
-          ocaml-compiler: 5.2
+          ocaml-compiler: 4.14
 
       - run: opam install . --deps-only --with-test
       - run: opam install zanuda
