@@ -25,5 +25,5 @@ jobs:
       - run: opam install . --deps-only --with-test
       - run: opam install ocamlformat
 
-      - run: opam exec -- dune build @fmt @check @runtest -j4
+      - run: opam exec -- dune build @fmt
       - run: opam exec -- dune runtest
