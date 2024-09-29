@@ -29,11 +29,11 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
   let rec add t key value =
     match t with
     | Empty -> Node { l = Empty; k = key; v = value; r = Empty }
-    | Node t when Ord.compare t.k key == -1 ->
+    | Node t when Ord.compare t.k key < 0 ->
         Node { t with l = add t.l key value }
-    | Node t when Ord.compare t.k key == 1 ->
+    | Node t when Ord.compare t.k key > 0 ->
         Node { t with r = add t.r key value }
-    | Node t when Ord.compare t.k key == 0 -> Node { t with v = value }
+    | Node t when Ord.compare t.k key = 0 -> Node { t with v = value }
     | _ -> Empty
 
   let rec add_preserve t key value =
