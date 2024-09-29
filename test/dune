@@ -1,3 +1,7 @@
 (test
  (name test_btree)
+ (libraries qcheck qcheck-alcotest alcotest btree))
+
+(test
+ (name test_property)
  (libraries alcotest qcheck qcheck-alcotest btree))
