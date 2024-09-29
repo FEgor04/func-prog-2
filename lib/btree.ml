@@ -40,9 +40,9 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
   let rec add_preserve t key value =
     match t with
     | Empty -> Node { l = Empty; k = key; v = value; r = Empty }
-    | Node t when Ord.compare t.k key == -1 ->
+    | Node t when Ord.compare t.k key < 0 ->
         Node { t with l = add_preserve t.l key value }
-    | Node t when Ord.compare t.k key == 1 ->
+    | Node t when Ord.compare t.k key > 0 ->
         Node { t with r = add_preserve t.r key value }
     | Node t when Ord.compare t.k key == 0 -> Node t
     | _ -> Empty
@@ -76,6 +76,10 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
   let rec union d1 = function
     | Node { l; r; k; v } -> union (union (add_preserve d1 k v) l) r
     | Empty -> d1
-   
-  let filter _f _t = Empty
+
+  let rec filter f = function
+    | Node n when f (n.k, n.v) ->
+        Node { n with l = filter f n.l; r = filter f n.r }
+    | Node n -> union (filter f n.l) (filter f n.r)
+    | _ -> Empty
 end

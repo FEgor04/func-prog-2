@@ -71,12 +71,22 @@ let union_neutral =
 let filter_false =
   QCheck.Test.make ~count:100 ~name:"filter with false is empty list"
     QCheck.(list int)
-    (fun l -> 
+    (fun l_raw ->
+      let l = l_raw |> to_unique in
       let d = l |> to_assoc |> IntDict.of_list in
       let expected = [] in
       let actual = d |> IntDict.filter (fun _ -> false) |> IntDict.to_list in
       expected = actual)
 
+let filter_true =
+  QCheck.Test.make ~count:100 ~name:"filter with true is same dict"
+    QCheck.(list int)
+    (fun l_raw ->
+      let l = l_raw |> to_unique in
+      let d = l |> to_assoc |> IntDict.of_list in
+      let expected = l |> to_assoc in
+      let actual = d |> IntDict.filter (fun _ -> true) |> IntDict.to_list in
+      expected = actual)
 
 let () =
   let list_interop_suite =
@@ -87,9 +97,9 @@ let () =
     List.map QCheck_alcotest.to_alcotest
       [ union_on_distinct_dicts; union_is_associative; union_neutral ]
   in
-  let filter_suite = 
-    List.map QCheck_alcotest.to_alcotest
-      [ filter_false ] in
+  let filter_suite =
+    List.map QCheck_alcotest.to_alcotest [ filter_false; filter_true ]
+  in
   Alcotest.run "Btree property tests"
     [
       ("monoid properties", monoid_properties_suite);
