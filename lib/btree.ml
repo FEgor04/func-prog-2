@@ -46,9 +46,7 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
     | Node t when Ord.compare t.k key == 0 -> Node t
     | _ -> Empty
 
-  let rec length = function
-    | Node n -> 1 + length n.l + length n.r
-    | Empty -> 0
+  let rec length = function Node n -> 1 + length n.l + length n.r | Empty -> 0
 
   let rec tail_of_list lst acc =
     match lst with
