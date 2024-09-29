@@ -16,6 +16,7 @@ module type Dict = sig
   val to_list : 'a t -> (key * 'a) list
   val map : (key -> 'a -> 'b) -> 'a t -> 'b t
   val fold_left : ('acc -> key * 'a -> 'acc) -> 'acc -> 'a t -> 'acc
+  val fold_right : ('acc -> key * 'a -> 'acc) -> 'acc -> 'a t -> 'acc
   val union : 'a t -> 'a t -> 'a t
   val filter : (key * 'a -> bool) -> 'a t -> 'a t
 end
@@ -75,6 +76,11 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
   let rec fold_left f acc t =
     match t with
     | Node { l; k; v; r } -> fold_left f (f (fold_left f acc l) (k, v)) r
+    | Empty -> acc
+
+  let rec fold_right f acc t =
+    match t with
+    | Node { l; k; v; r } -> fold_right f (f (fold_right f acc r) (k, v)) l
     | Empty -> acc
 
   let rec union d1 = function
