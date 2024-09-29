@@ -65,7 +65,11 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
 
   let rec map f t =
     match t with
-    | Node n -> Node { n with l = map f n.l; r = map f n.r; v = f n.k n.v }
+    | Node n ->
+        let l' = map f n.l in
+        let r' = map f n.r in
+        let v' = f n.k n.v in
+        Node { n with l = l'; r = r'; v = v' }
     | Empty -> Empty
 
   let rec fold_left f acc t =
