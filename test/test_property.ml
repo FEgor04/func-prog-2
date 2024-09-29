@@ -31,9 +31,25 @@ let union_on_distinct_dicts =
       let actual = IntDict.union d1 d2 |> IntDict.to_list in
       expected = actual)
 
+let union_is_associative =
+  QCheck.Test.make ~count:100 ~name:"union is associative"
+    QCheck.(triple (list int) (list int) (list int))
+    (fun (l1, l2, l3) ->
+      QCheck.assume (l1 <> []);
+      QCheck.assume (l2 <> []);
+      QCheck.assume (l3 <> []);
+      let x = l1 |> to_assoc |> IntDict.of_list in
+      let y = l2 |> to_assoc |> IntDict.of_list in
+      let z = l3 |> to_assoc |> IntDict.of_list in
+      let first = IntDict.union (IntDict.union x y) z in
+      let second = IntDict.union x (IntDict.union y z) in
+      let first_list = first |> IntDict.to_list in
+      let second_list = second |> IntDict.to_list in
+      first_list = second_list)
+
 let () =
   let suite =
     List.map QCheck_alcotest.to_alcotest
-      [ of_list_to_list; union_on_distinct_dicts ]
+      [ of_list_to_list; union_on_distinct_dicts; union_is_associative ]
   in
   Alcotest.run "my test" [ ("suite", suite) ]
