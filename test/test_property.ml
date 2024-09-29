@@ -17,6 +17,17 @@ let of_list_to_list =
       l |> to_unique |> to_assoc |> IntDict.of_list |> IntDict.to_list
       = (l |> to_unique |> to_assoc))
 
+let to_list_equals_fold_left =
+  QCheck.Test.make ~count:100 ~name:"of_list -> to_list equals to fold_left arr"
+    QCheck.(list int)
+    (fun l_raw ->
+      let l = l_raw |> to_unique in
+      let dict = l |> to_assoc |> IntDict.of_list in
+      let to_list = dict |> IntDict.to_list |> List.map (fun (_, v) -> v) in
+      let fold_to_arr acc (_, v) = v :: acc in
+      let fold = dict |> IntDict.fold_left fold_to_arr [] in
+      to_list = fold)
+
 let union_on_distinct_dicts =
   QCheck.Test.make ~count:100 ~name:"union contains keys from both dict"
     QCheck.(list int)
@@ -59,7 +70,8 @@ let union_neutral =
 
 let () =
   let list_interop_suite =
-    List.map QCheck_alcotest.to_alcotest [ of_list_to_list ]
+    List.map QCheck_alcotest.to_alcotest
+      [ of_list_to_list; to_list_equals_fold_left ]
   in
   let monoid_properties_suite =
     List.map QCheck_alcotest.to_alcotest
