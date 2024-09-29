@@ -58,13 +58,15 @@ let union_neutral =
       first_list = second_list)
 
 let () =
-  let suite =
-    List.map QCheck_alcotest.to_alcotest
-      [
-        of_list_to_list;
-        union_on_distinct_dicts;
-        union_is_associative;
-        union_neutral;
-      ]
+  let list_interop_suite =
+    List.map QCheck_alcotest.to_alcotest [ of_list_to_list ]
   in
-  Alcotest.run "my test" [ ("suite", suite) ]
+  let monoid_properties_suite =
+    List.map QCheck_alcotest.to_alcotest
+      [ union_on_distinct_dicts; union_is_associative; union_neutral ]
+  in
+  Alcotest.run "Btree property tests"
+    [
+      ("monoid properties", monoid_properties_suite);
+      ("list interop", list_interop_suite);
+    ]
