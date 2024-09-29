@@ -35,6 +35,8 @@ module type Dict = sig
   val fold_right : ('acc -> key * 'a -> 'acc) -> 'acc -> 'a t -> 'acc
   val union : 'a t -> 'a t -> 'a t
   val filter : (key * 'a -> bool) -> 'a t -> 'a t
+  val has : key -> 'a t -> bool
+  val get : key -> 'a t -> 'a option
 end
 
 module Make (Ord : OrderedType) : Dict with type key = Ord.t

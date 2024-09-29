@@ -19,6 +19,8 @@ module type Dict = sig
   val fold_right : ('acc -> key * 'a -> 'acc) -> 'acc -> 'a t -> 'acc
   val union : 'a t -> 'a t -> 'a t
   val filter : (key * 'a -> bool) -> 'a t -> 'a t
+  val has : key -> 'a t -> bool
+  val get : key -> 'a t -> 'a option
 end
 
 module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
@@ -92,4 +94,12 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
         Node { n with l = filter f n.l; r = filter f n.r }
     | Node n -> union (filter f n.l) (filter f n.r)
     | _ -> Empty
+
+  let rec get key = function
+    | Node { l = _; r = _; k; v } when Ord.compare key k = 0 -> Some v
+    | Node { l; r = _; k; v = _ } when Ord.compare key k < 0 -> get key l
+    | Node { l = _; r; k; v = _ } when Ord.compare key k > 0 -> get key r
+    | _ -> None
+
+  let has k t = Option.is_some (get k t)
 end
