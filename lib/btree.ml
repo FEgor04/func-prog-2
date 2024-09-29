@@ -24,31 +24,31 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
   type 'a t = Empty | Node of { l : 'a t; k : key; v : 'a; r : 'a t }
 
   let empty = Empty
-  let is_empty t = match t with Empty -> true | _ -> false
+  let is_empty = function Empty -> true | _ -> false
 
   let rec add t key value =
     match t with
     | Empty -> Node { l = Empty; k = key; v = value; r = Empty }
     | Node t when Ord.compare t.k key == -1 ->
-        Node { l = add t.l key value; k = t.k; v = t.v; r = t.r }
+        Node { t with l = add t.l key value }
     | Node t when Ord.compare t.k key == 1 ->
-        Node { l = t.l; k = t.k; v = t.v; r = add t.r key value }
-    | Node t when Ord.compare t.k key == 0 ->
-        Node { l = t.l; k = t.k; v = value; r = t.r }
+        Node { t with r = add t.r key value }
+    | Node t when Ord.compare t.k key == 0 -> Node { t with v = value }
     | _ -> Empty
 
   let rec add_preserve t key value =
     match t with
     | Empty -> Node { l = Empty; k = key; v = value; r = Empty }
     | Node t when Ord.compare t.k key == -1 ->
-        Node { l = add_preserve t.l key value; k = t.k; v = t.v; r = t.r }
+        Node { t with l = add_preserve t.l key value }
     | Node t when Ord.compare t.k key == 1 ->
-        Node { l = t.l; k = t.k; v = t.v; r = add_preserve t.r key value }
+        Node { t with r = add_preserve t.r key value }
     | Node t when Ord.compare t.k key == 0 -> Node t
     | _ -> Empty
 
-  let rec length t =
-    match t with Node n -> 1 + length n.l + length n.r | _ -> 0
+  let rec length = function
+    | Node n -> 1 + length n.l + length n.r
+    | Empty -> 0
 
   let rec tail_of_list lst acc =
     match lst with
@@ -66,7 +66,7 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
 
   let rec map f t =
     match t with
-    | Node n -> Node { l = map f n.l; r = map f n.r; k = n.k; v = f n.k n.v }
+    | Node n -> Node { n with l = map f n.l; r = map f n.r; v = f n.k n.v }
     | Empty -> Empty
 
   let rec fold_left f acc t =
@@ -74,8 +74,7 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
     | Node { l; k; v; r } -> fold_left f (f (fold_left f acc l) (k, v)) r
     | Empty -> acc
 
-  let rec union d1 d2 =
-    match d2 with
+  let rec union d1 = function
     | Node { l; r; k; v } -> union (union (add_preserve d1 k v) l) r
     | Empty -> d1
 end
