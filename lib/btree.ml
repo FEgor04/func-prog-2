@@ -17,6 +17,7 @@ module type Dict = sig
   val map : (key -> 'a -> 'b) -> 'a t -> 'b t
   val fold_left : ('acc -> key * 'a -> 'acc) -> 'acc -> 'a t -> 'acc
   val union : 'a t -> 'a t -> 'a t
+  val filter : (key * 'a -> bool) -> 'a t -> 'a t
 end
 
 module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
@@ -75,4 +76,6 @@ module Make (Ord : OrderedType) : Dict with type key = Ord.t = struct
   let rec union d1 = function
     | Node { l; r; k; v } -> union (union (add_preserve d1 k v) l) r
     | Empty -> d1
+   
+  let filter _f _t = Empty
 end

@@ -68,6 +68,16 @@ let union_neutral =
       let second_list = d1 |> IntDict.to_list in
       first_list = second_list)
 
+let filter_false =
+  QCheck.Test.make ~count:100 ~name:"filter with false is empty list"
+    QCheck.(list int)
+    (fun l -> 
+      let d = l |> to_assoc |> IntDict.of_list in
+      let expected = [] in
+      let actual = d |> IntDict.filter (fun _ -> false) |> IntDict.to_list in
+      expected = actual)
+
+
 let () =
   let list_interop_suite =
     List.map QCheck_alcotest.to_alcotest
@@ -77,8 +87,12 @@ let () =
     List.map QCheck_alcotest.to_alcotest
       [ union_on_distinct_dicts; union_is_associative; union_neutral ]
   in
+  let filter_suite = 
+    List.map QCheck_alcotest.to_alcotest
+      [ filter_false ] in
   Alcotest.run "Btree property tests"
     [
       ("monoid properties", monoid_properties_suite);
       ("list interop", list_interop_suite);
+      ("filter function", filter_suite);
     ]
