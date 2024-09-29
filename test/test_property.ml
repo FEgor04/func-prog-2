@@ -47,9 +47,24 @@ let union_is_associative =
       let second_list = second |> IntDict.to_list in
       first_list = second_list)
 
+let union_neutral =
+  QCheck.Test.make ~count:100 ~name:"union with Empty is neutral"
+    QCheck.(list int)
+    (fun l ->
+      let d = l |> to_assoc |> IntDict.of_list in
+      let d1 = IntDict.union d IntDict.empty in
+      let first_list = d |> IntDict.to_list in
+      let second_list = d1 |> IntDict.to_list in
+      first_list = second_list)
+
 let () =
   let suite =
     List.map QCheck_alcotest.to_alcotest
-      [ of_list_to_list; union_on_distinct_dicts; union_is_associative ]
+      [
+        of_list_to_list;
+        union_on_distinct_dicts;
+        union_is_associative;
+        union_neutral;
+      ]
   in
   Alcotest.run "my test" [ ("suite", suite) ]
