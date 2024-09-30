@@ -1,26 +1,25 @@
 (lang dune 3.16)
 
 (name func_prog_2)
+(version 670fda0-dirty)
 
 (generate_opam_files true)
 
 (source
- (github username/reponame))
+ (github fegor04/func-prog-2))
 
-(authors "Author Name")
+(authors "Egor Fedorov")
 
-(maintainers "Maintainer Name")
+(maintainers "Egor Fedorov")
 
-(license LICENSE)
-
-(documentation https://url/to/documentation)
+(license MIT)
 
 (package
  (name func_prog_2)
- (synopsis "A short synopsis")
- (description "A longer description")
+ (synopsis "Binary Tree Dict")
+ (description "Binary Tree Dict functor that allows you to create binary tree for any type")
  (depends ocaml dune (alcotest :with-test) qcheck qcheck-alcotest)
  (tags
-  (topics "to describe" your project)))
+  (btree dict)))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html
