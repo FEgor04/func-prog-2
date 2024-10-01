@@ -78,9 +78,11 @@ let union_neutral =
     (fun l ->
       let d = l |> to_assoc |> IntDict.of_list in
       let d1 = IntDict.union d IntDict.empty in
+      let d2 = IntDict.union IntDict.empty d in
       let first_list = d |> IntDict.to_list in
       let second_list = d1 |> IntDict.to_list in
-      first_list = second_list)
+      let third_list = d2 |> IntDict.to_list in
+      first_list = second_list && second_list = third_list)
 
 let filter_false =
   QCheck.Test.make ~count:100 ~name:"filter with false is empty list"

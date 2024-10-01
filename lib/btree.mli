@@ -8,7 +8,7 @@ end
   Consider M to be a set of all possible finite dictionaries with same key and value type.`
   Consider a [union] to be a binary operation on M.
   It is obviously associative: (x ∪ y) ∪ z = x ∪ (y ∪ z)
-  A neutral element is [Dict.Empty]: x ∪ {} = x
+  A neutral element is [Dict.Empty]: {} ∪ x = x ∪ {} = x
     *)
 module type Dict = sig
   type key
