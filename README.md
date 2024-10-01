@@ -1,5 +1,7 @@
 # Functional Programming Lab 2
 
+[![Build, test, lint](https://github.com/FEgor04/func-prog-2/actions/workflows/flow.yaml/badge.svg)](https://github.com/FEgor04/func-prog-2/actions/workflows/flow.yaml)
+
 Вариант: `bt-dict`
 
 ### Задание
@@ -27,6 +29,20 @@
 
 ### Ключевые элементы реализации
 
+- Интерфейс модуля описан в [btree.mli](./lib/btree.mli)
+- Реализация в [btree.ml](./lib/btree.ml)
+
 ### Тесты, отчет инструмента тестирования, метрики
 
+- Для unit тестирования использован фреймворк Alcotest
+- Для property тестирования использован фреймворк QCheck с дополнительным
+пакетом для интеграции
+
 ### Выводы
+
+В ходе выполнения данной лабораторной работы мною были изучены
+такие понятия как функции высшего порядка, property-based тестирование и 
+parametrized modules в OCaml.
+С помощью данных инструментов была разработана библиотека для работы со 
+словарем на основе бинарного дерева поиска.
+Данная библиотека была покрыта unit-тестами и property-based тестами.
