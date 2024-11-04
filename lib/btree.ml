@@ -27,10 +27,28 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
   let is_empty = function Empty -> true | _ -> false
   let singleton k v = Node { children = []; keys = [ (k, v) ] }
 
-  let find key = function
+  let find_children_by_key key = function
+    | Empty -> Empty
+    | Node { children; keys } -> (
+        if List.is_empty children then Empty
+        else
+          (* find index of the first key that is bigger than given *)
+          let is_desired_key (k, _) = Ord.compare k key = 1 in
+          let desired_index = List.find_index is_desired_key keys in
+          match desired_index with
+          | None -> List.hd children
+          | Some idx -> List.nth children (idx + 1))
+
+  let rec find key = function
     | Empty -> None
-    | Node { children = _; keys } -> (
+    | Node { children; keys } -> (
         let key_is_desired (k, _) = k = key in
         let key_in_keys = List.find_opt key_is_desired keys in
-        match key_in_keys with None -> None | Some (_, v) -> Some v)
+        match key_in_keys with
+        | None ->
+            let next_child =
+              find_children_by_key key (Node { children; keys })
+            in
+            find key next_child
+        | Some (_, v) -> Some v)
 end
