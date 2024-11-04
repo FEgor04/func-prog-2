@@ -25,6 +25,13 @@ let test_find_singleton_key_not_exists () =
     "singleton dict has given key" true
     (IntDict.singleton 10 10 |> IntDict.find 5 |> Option.is_none)
 
+let test_add_find () =
+  Alcotest.(check bool)
+    "add two keys sequentially and find them" true
+    (let dict = IntDict.empty |> IntDict.add 1 1 |> IntDict.add 2 2 in
+     let result = IntDict.has 1 dict && IntDict.has 2 dict in
+     result)
+
 let () =
   let open Alcotest in
   run "BTree"
@@ -37,4 +44,5 @@ let () =
           test_case "singleton dict, key does not exist" `Quick
             test_find_singleton_key_not_exists;
         ] );
+      ("add", [ test_case "add two keys then find them" `Quick test_add_find ]);
     ]

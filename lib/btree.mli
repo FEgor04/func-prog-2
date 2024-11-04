@@ -23,6 +23,9 @@ module type Dict = sig
 
   val find : key -> 'a t -> 'a option
   (** Returns value associated with given key *)
+
+  val add : key -> 'a -> 'a t -> 'a t
+  val has : key -> 'a t -> bool
 end
 
 module Make (Ord : OrderedType) (_ : BTreeConfig) : Dict with type key = Ord.t
