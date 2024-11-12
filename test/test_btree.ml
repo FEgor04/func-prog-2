@@ -10,6 +10,9 @@ end
 
 module IntDict = Btree.Make (IntCompare) (BTreeConfig)
 
+let to_assoc x = (x, x)
+let to_assoc_list = List.map to_assoc
+
 let test_find_empty () =
   Alcotest.(check bool)
     "empty dict is empty" true
@@ -36,7 +39,6 @@ let test_of_list () =
   Alcotest.(check bool)
     "of small list" true
     (let list = [ 1; 2; 3; 4; 5; 6; 7; 8; 9; 10 ] in
-     let to_assoc x = (x, x) in
      let assoc = list |> List.map to_assoc in
      let dict = assoc |> IntDict.of_list in
      let has_key key = dict |> IntDict.has key in
@@ -52,6 +54,17 @@ let test_map_empty () =
      let dict_mapped = dict |> IntDict.map square in
      IntDict.is_empty dict_mapped)
 
+let test_map_list () =
+  Alcotest.(check bool)
+    "map small list" true
+    (let list = [ 1; 2; 3; 4 ] in
+     let dict = list |> to_assoc_list |> IntDict.of_list in
+     let square x = x * x in
+     let dict_mapped = dict |> IntDict.map square in
+     let get_value key = IntDict.find key dict_mapped |> Option.get in
+     let values = list |> List.map get_value in
+     list |> List.map square = values)
+
 let () =
   let open Alcotest in
   run "BTree"
@@ -66,5 +79,9 @@ let () =
         ] );
       ("add", [ test_case "add two keys then find them" `Quick test_add_find ]);
       ("of_list", [ test_case "small list" `Quick test_of_list ]);
-      ("map", [ test_case "empty" `Quick test_map_empty ]);
+      ( "map",
+        [
+          test_case "empty" `Quick test_map_empty;
+          test_case "small" `Quick test_map_list;
+        ] );
     ]
