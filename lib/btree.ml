@@ -91,7 +91,7 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     | Empty -> 0
     | Node { keys; children = _ } -> List.length keys
 
-  let[@warning "-unused-value-declaration"] rec add_nonfull key value = function
+  let rec add_nonfull key value = function
     | Empty -> singleton key value
     | Node { children; keys } ->
         let is_leaf = List.is_empty children in
@@ -113,11 +113,10 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
 
   let add key value = function
     | Empty -> singleton key value
-    | Node { children; keys } ->
-        let keys_added = (key, value) :: keys in
-        let sort_by_key (a, _) (b, _) = Ord.compare a b in
-        let keys_sorted = keys_added |> List.sort sort_by_key in
-        Node { children; keys = keys_sorted }
+    | Node { children; keys } when List.length children = (2 * Config.t) - 1 ->
+        let new_root = split_child 1 (Node { children; keys }) in
+        add_nonfull key value new_root
+    | Node { children; keys } -> add_nonfull key value (Node { children; keys })
 
   let of_list lst =
     let initial = empty in
