@@ -30,6 +30,8 @@ module type Dict = sig
 
   val map : ('a -> 'b) -> 'a t -> 'b t
   (** Returns dict with function applied to all of its values *)
+
+  val to_list : 'a t -> (key * 'a) list
 end
 
 module Make (Ord : OrderedType) (_ : BTreeConfig) : Dict with type key = Ord.t
