@@ -26,6 +26,7 @@ module type Dict = sig
 
   val add : key -> 'a -> 'a t -> 'a t
   val has : key -> 'a t -> bool
+  val of_list : (key * 'a) list -> 'a t
 end
 
 module Make (Ord : OrderedType) (_ : BTreeConfig) : Dict with type key = Ord.t

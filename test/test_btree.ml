@@ -32,6 +32,18 @@ let test_add_find () =
      let result = IntDict.has 1 dict && IntDict.has 2 dict in
      result)
 
+let test_of_list () =
+  Alcotest.(check bool)
+    "of small list" true
+    (let list = [ 1; 2; 3; 4; 5; 6; 7; 8; 9; 10 ] in
+     let to_assoc x = (x, x) in
+     let assoc = list |> List.map to_assoc in
+     let dict = assoc |> IntDict.of_list in
+     let has_key key = dict |> IntDict.has key in
+     let has_keys = list |> List.map has_key in
+     let has_all = has_keys |> List.fold_left ( && ) true in
+     has_all)
+
 let () =
   let open Alcotest in
   run "BTree"
@@ -45,4 +57,5 @@ let () =
             test_find_singleton_key_not_exists;
         ] );
       ("add", [ test_case "add two keys then find them" `Quick test_add_find ]);
+      ("of_list", [ test_case "small list" `Quick test_of_list ]);
     ]

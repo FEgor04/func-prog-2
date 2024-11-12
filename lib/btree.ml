@@ -18,6 +18,7 @@ module type Dict = sig
   val find : key -> 'a t -> 'a option
   val add : key -> 'a -> 'a t -> 'a t
   val has : key -> 'a t -> bool
+  val of_list : (key * 'a) list -> 'a t
 end
 
 module Make (Ord : OrderedType) (Config : BTreeConfig) :
@@ -117,4 +118,9 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
         let sort_by_key (a, _) (b, _) = Ord.compare a b in
         let keys_sorted = keys_added |> List.sort sort_by_key in
         Node { children; keys = keys_sorted }
+
+  let of_list lst =
+    let initial = empty in
+    let add_to_acc acc (k, v) = acc |> add k v in
+    lst |> List.fold_left add_to_acc initial
 end
