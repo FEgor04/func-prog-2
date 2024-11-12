@@ -127,5 +127,12 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     let add_to_acc acc (k, v) = acc |> add k v in
     lst |> List.fold_left add_to_acc initial
 
-  let map _ = function _ -> Empty
+  let rec map f = function
+    | Empty -> Empty
+    | Node { children; keys } ->
+        let map_key (k, v) = (k, f v) in
+        let keys_mapped = keys |> List.map map_key in
+        let map_children c = map f c in
+        let children_mapped = children |> List.map map_children in
+        Node { children = children_mapped; keys = keys_mapped }
 end
