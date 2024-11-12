@@ -47,11 +47,9 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
   (** Returns a child of given node in which `key` is supposed to be *)
   let find_children_by_key key = function
     | Empty -> None
-    | Node { children; keys } ->
-        let idx =
-          find_child_index_by_key key (Node { children; keys }) |> Option.get
-        in
-        Some (List.nth children idx)
+    | Node n -> (
+        let idx = find_child_index_by_key key (Node n) in
+        match idx with Some idx -> Some (List.nth n.children idx) | _ -> None)
 
   let rec find key = function
     | Empty -> None
