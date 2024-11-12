@@ -16,6 +16,7 @@ depends: [
   "alcotest" {with-test}
   "qcheck"
   "qcheck-alcotest"
+  "ppx_expect"
   "odoc" {with-doc}
 ]
 build: [

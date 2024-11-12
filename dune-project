@@ -18,7 +18,7 @@
  (name func_prog_2)
  (synopsis "Binary Tree Dict")
  (description "Binary Tree Dict functor that allows you to create binary tree for any type")
- (depends ocaml dune (alcotest :with-test) qcheck qcheck-alcotest)
+ (depends ocaml dune (alcotest :with-test) qcheck qcheck-alcotest ppx_expect)
  (tags
   (btree dict)))
 
