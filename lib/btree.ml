@@ -91,6 +91,8 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     | Empty -> 0
     | Node { keys; children = _ } -> List.length keys
 
+  (** Adds given node to non-full node.
+      Implementation is mostly copied from BTree conspect on neerc.ifmo.ru *)
   let rec add_nonfull key value = function
     | Empty -> singleton key value
     | Node { children; keys } ->
@@ -111,6 +113,7 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
           in
           add_nonfull key value split_child
 
+  (** Adds given node to tree. If current node is full, it will split it. *)
   let add key value = function
     | Empty -> singleton key value
     | Node { children; keys } when List.length children = (2 * Config.t) - 1 ->
