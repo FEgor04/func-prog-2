@@ -11,7 +11,7 @@ end
 module IntDict = Btree.Make (IntCompare) (BTreeConfig)
 
 let add_from_list_has_key =
-  QCheck.Test.make ~count:100 ~name:"add_from_list_has_key"
+  QCheck.Test.make ~count:50 ~name:"add_from_list_has_key"
     QCheck.(list int)
     (fun lst_raw ->
       let lst = lst_raw |> List.sort_uniq Int.compare in

@@ -44,6 +44,14 @@ let test_of_list () =
      let has_all = has_keys |> List.fold_left ( && ) true in
      has_all)
 
+let test_map_empty () =
+  Alcotest.(check bool)
+    "of small list" true
+    (let dict = IntDict.empty in
+     let square x = x * x in
+     let dict_mapped = dict |> IntDict.map square in
+     IntDict.is_empty dict_mapped)
+
 let () =
   let open Alcotest in
   run "BTree"
@@ -58,4 +66,5 @@ let () =
         ] );
       ("add", [ test_case "add two keys then find them" `Quick test_add_find ]);
       ("of_list", [ test_case "small list" `Quick test_of_list ]);
+      ("map", [ test_case "empty" `Quick test_map_empty ]);
     ]

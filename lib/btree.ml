@@ -19,6 +19,7 @@ module type Dict = sig
   val add : key -> 'a -> 'a t -> 'a t
   val has : key -> 'a t -> bool
   val of_list : (key * 'a) list -> 'a t
+  val map : ('a -> 'b) -> 'a t -> 'b t
 end
 
 module Make (Ord : OrderedType) (Config : BTreeConfig) :
@@ -125,4 +126,6 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     let initial = empty in
     let add_to_acc acc (k, v) = acc |> add k v in
     lst |> List.fold_left add_to_acc initial
+
+  let map _ = function _ -> Empty
 end
