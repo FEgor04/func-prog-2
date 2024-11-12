@@ -32,6 +32,8 @@ module type Dict = sig
   (** Returns dict with function applied to all of its values *)
 
   val to_list : 'a t -> (key * 'a) list
+  val merge : 'a t -> 'a t -> 'a t
+  val ( @ ) : 'a t -> 'a t -> 'a t
 end
 
 module Make (Ord : OrderedType) (_ : BTreeConfig) : Dict with type key = Ord.t

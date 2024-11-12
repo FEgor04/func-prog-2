@@ -21,6 +21,8 @@ module type Dict = sig
   val of_list : (key * 'a) list -> 'a t
   val map : ('a -> 'b) -> 'a t -> 'b t
   val to_list : 'a t -> (key * 'a) list
+  val merge : 'a t -> 'a t -> 'a t
+  val ( @ ) : 'a t -> 'a t -> 'a t
 end
 
 module Make (Ord : OrderedType) (Config : BTreeConfig) :
@@ -143,4 +145,12 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
         let children_list = children |> List.map to_list |> List.flatten in
         let cmp_by_key (a, _) (b, _) = Ord.compare a b in
         List.merge cmp_by_key children_list keys
+
+  let merge t1 t2 =
+    let t2_values = to_list t2 in
+    let add_to_tree t (k, v) = add k v t in
+    let result = List.fold_left add_to_tree t1 t2_values in
+    result
+
+  let ( @ ) = merge
 end
