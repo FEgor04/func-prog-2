@@ -34,6 +34,7 @@ module type Dict = sig
   val to_list : 'a t -> (key * 'a) list
   val merge : 'a t -> 'a t -> 'a t
   val ( @ ) : 'a t -> 'a t -> 'a t
+  val fold_left : ('acc -> key * 'a -> 'acc) -> 'acc -> 'a t -> 'acc
 end
 
 module Make (Ord : OrderedType) (_ : BTreeConfig) : Dict with type key = Ord.t

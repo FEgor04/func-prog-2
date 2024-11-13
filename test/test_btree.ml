@@ -65,6 +65,15 @@ let test_map_list () =
      let values = list |> List.map get_value in
      list |> List.map square = values)
 
+let test_fold_sum () =
+  Alcotest.(check int)
+    "1 + 2 + 3 + 4 = " 10
+    (let list = [ 1; 2; 3; 4 ] in
+     let dict = list |> to_assoc_list |> IntDict.of_list in
+     let sum acc (_, v) = acc + v in
+     let actual = dict |> IntDict.fold_left sum 0 in
+     actual)
+
 let () =
   let open Alcotest in
   run "BTree"
@@ -84,4 +93,5 @@ let () =
           test_case "empty" `Quick test_map_empty;
           test_case "small" `Quick test_map_list;
         ] );
+      ("fold_left", [ test_case "sum" `Quick test_fold_sum ]);
     ]

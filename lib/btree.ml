@@ -23,6 +23,7 @@ module type Dict = sig
   val to_list : 'a t -> (key * 'a) list
   val merge : 'a t -> 'a t -> 'a t
   val ( @ ) : 'a t -> 'a t -> 'a t
+  val fold_left : ('acc -> key * 'a -> 'acc) -> 'acc -> 'a t -> 'acc
 end
 
 module Make (Ord : OrderedType) (Config : BTreeConfig) :
@@ -153,4 +154,16 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     result
 
   let ( @ ) = merge
+
+  let rec fold_left f acc = function
+    | Empty -> acc
+    | Node { children; keys } when List.is_empty children ->
+        List.fold_left f acc keys
+    | Node { children; keys } ->
+        let enumerate i x = (i, x) in
+        let keys_enumerated = List.mapi enumerate keys in
+        let fold_key_child acc (i, key) =
+          f (fold_left f acc (List.nth children i)) key
+        in
+        List.fold_left fold_key_child acc keys_enumerated
 end
