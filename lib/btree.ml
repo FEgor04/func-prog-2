@@ -25,6 +25,7 @@ module type Dict = sig
   val ( @ ) : 'a t -> 'a t -> 'a t
   val fold_left : ('acc -> key * 'a -> 'acc) -> 'acc -> 'a t -> 'acc
   val fold_right : (key * 'a -> 'acc -> 'acc) -> 'acc -> 'a t -> 'acc
+  val height : 'a t -> int
 end
 
 module Make (Ord : OrderedType) (Config : BTreeConfig) :
@@ -179,4 +180,11 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
           f key (fold_right f acc (List.nth children i))
         in
         List.fold_right fold_key_child keys_enumerated acc
+
+  let rec height = function
+    | Empty -> 0
+    | Node { children; keys = _ } ->
+        let children_height = children |> List.map height in
+        let max_height = List.fold_left max min_int children_height in
+        max_height + 1
 end

@@ -83,10 +83,19 @@ let test_fold_right_list () =
      let actual = dict |> IntDict.fold_right fold_right_concat [] in
      actual)
 
+let test_height_3 () =
+  Alcotest.(check int)
+    "log_2(3) = 2" 2
+    (let list = [ 1; 2; 3 ] in
+     let dict = list |> to_assoc_list |> IntDict.of_list in
+     let actual = dict |> IntDict.height in
+     actual)
+
 let () =
   let open Alcotest in
   run "BTree"
     [
+      ("structure", [ test_case "height for 3 nodes" `Quick test_height_3 ]);
       ( "find",
         [
           test_case "empty dict" `Quick test_find_empty;
