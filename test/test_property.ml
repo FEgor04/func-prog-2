@@ -5,7 +5,7 @@ module IntCompare = struct
 end
 
 module BTreeConfig = struct
-  let t = 10
+  let t = 2
 end
 
 module IntDict = Btree.Make (IntCompare) (BTreeConfig)
@@ -73,6 +73,15 @@ let fold_left_is_to_list =
       let l' = IntDict.fold_left (fun acc kv -> acc @ [ kv ]) [] d in
       l = l')
 
+let fold_right_is_to_list_rev =
+  QCheck.Test.make ~count:50 ~name:"fold with concat is the same as to_list"
+    QCheck.(list int)
+    (fun l_raw ->
+      let d = raw_to_dict l_raw in
+      let l = d |> IntDict.to_list |> List.rev in
+      let l' = IntDict.fold_right (fun kv acc -> acc @ [ kv ]) [] d in
+      l = l')
+
 let () =
   let add_suite =
     List.map QCheck_alcotest.to_alcotest [ add_from_list_has_key ]
@@ -85,7 +94,8 @@ let () =
       [ merge_empty_is_neutral; merge_is_associative ]
   in
   let fold_suite =
-    List.map QCheck_alcotest.to_alcotest [ fold_left_is_to_list ]
+    List.map QCheck_alcotest.to_alcotest
+      [ fold_left_is_to_list; fold_right_is_to_list_rev ]
   in
   Alcotest.run "quickcheck"
     [

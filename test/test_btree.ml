@@ -5,7 +5,7 @@ module IntCompare = struct
 end
 
 module BTreeConfig = struct
-  let t = 10
+  let t = 2
 end
 
 module IntDict = Btree.Make (IntCompare) (BTreeConfig)
@@ -74,6 +74,15 @@ let test_fold_sum () =
      let actual = dict |> IntDict.fold_left sum 0 in
      actual)
 
+let test_fold_right_list () =
+  Alcotest.(check (list int))
+    "fold_right to list" [ 4; 3; 2; 1 ]
+    (let list = [ 1; 2; 3; 4 ] in
+     let dict = list |> to_assoc_list |> IntDict.of_list in
+     let fold_right_concat (k, _) acc = acc @ [ k ] in
+     let actual = dict |> IntDict.fold_right fold_right_concat [] in
+     actual)
+
 let () =
   let open Alcotest in
   run "BTree"
@@ -93,5 +102,9 @@ let () =
           test_case "empty" `Quick test_map_empty;
           test_case "small" `Quick test_map_list;
         ] );
-      ("fold_left", [ test_case "sum" `Quick test_fold_sum ]);
+      ( "fold_left",
+        [
+          test_case "sum" `Quick test_fold_sum;
+          test_case "fold_right to list" `Quick test_fold_right_list;
+        ] );
     ]
