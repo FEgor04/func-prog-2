@@ -64,6 +64,15 @@ let merge_is_associative =
       let r2_lst = r2 |> IntDict.to_list in
       r1_lst = r2_lst)
 
+let fold_left_is_to_list =
+  QCheck.Test.make ~count:50 ~name:"fold with concat is the same as to_list"
+    QCheck.(list int)
+    (fun l_raw ->
+      let d = raw_to_dict l_raw in
+      let l = d |> IntDict.to_list in
+      let l' = IntDict.fold_left (fun acc kv -> acc @ [ kv ]) [] d in
+      l = l')
+
 let () =
   let add_suite =
     List.map QCheck_alcotest.to_alcotest [ add_from_list_has_key ]
@@ -75,9 +84,13 @@ let () =
     List.map QCheck_alcotest.to_alcotest
       [ merge_empty_is_neutral; merge_is_associative ]
   in
+  let fold_suite =
+    List.map QCheck_alcotest.to_alcotest [ fold_left_is_to_list ]
+  in
   Alcotest.run "quickcheck"
     [
       ("add_suite", add_suite);
       ("of_list_to_list", of_list_to_list);
       ("monoid_properties", monoid_properties);
+      ("fold", fold_suite);
     ]
