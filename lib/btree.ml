@@ -48,10 +48,6 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
           let desired_index = List.find_index is_desired_key keys in
           match desired_index with None -> Some 0 | Some x -> Some (x + 1))
 
-  let node_key_by_idx idx = function
-    | Empty -> None
-    | Node { children = _; keys } -> Some (List.nth keys idx)
-
   (** Returns a child of given node in which `key` is supposed to be *)
   let find_children_by_key key = function
     | Empty -> None
@@ -74,59 +70,105 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
 
   let has key t = t |> find key |> Option.is_some
 
-  (** Splits given node child with given index on two and updates given node *)
-  let split_child i = function
-    | Empty -> Empty
-    | Node { children; keys } ->
-        let to_split = List.nth children i in
-        let splitted_left = Node { children = []; keys = [] } in
-        let splitted_right = Node { children = []; keys = [] } in
-        let key_value = node_key_by_idx i to_split |> Option.get in
-        let keys_updated = key_value :: keys in
-        let sort_by_key (a, _) (b, _) = Ord.compare a b in
-        let keys_sorted = List.sort_uniq sort_by_key keys_updated in
-        let children_left, _, children_right =
-          Utils.list_split_idx i children
-        in
-        let children =
-          children_left @ [ splitted_left ] @ [ splitted_right ]
-          @ children_right
-        in
-        Node { children; keys = keys_sorted }
-
-  let node_keys_length = function
-    | Empty -> 0
-    | Node { keys; children = _ } -> List.length keys
-
-  (** Adds given node to non-full node.
-      Implementation is mostly copied from BTree conspect on neerc.ifmo.ru *)
-  let rec add_nonfull key value = function
-    | Empty -> singleton key value
-    | Node { children; keys } ->
-        let is_leaf = List.is_empty children in
-        if is_leaf then
-          let keys_updated = (key, value) :: keys in
-          let compare_by_key (a, _) (b, _) = Ord.compare a b in
-          let keys_sorted = keys_updated |> List.sort_uniq compare_by_key in
-          Node { children = []; keys = keys_sorted }
+  (** Splits the child node at index `i` of the given parent node. 
+    Updates the parent node with the new split structure. *)
+  let split_in_half = function
+    | Empty -> None (* Cannot split an empty node *)
+    | Node { keys; children } ->
+        let n = List.length keys in
+        if n < 1 then None (* Cannot split a node without keys *)
         else
-          let idx =
-            find_child_index_by_key key (Node { children; keys }) |> Option.get
+          let mid_idx = n / 2 in
+          (* Split keys into left and right around the middle key *)
+          let[@warning "-partial-match"] left_keys, mid_key :: right_keys =
+            Utils.list_split_idx mid_idx keys
           in
-          let child = List.nth children idx in
-          let n = node_keys_length child in
-          let split_child =
-            if n == (2 * Config.t) - 1 then split_child idx child else child
+          (* Split children into left and right around the middle index *)
+          let left_children, right_children =
+            if List.is_empty children then ([], [])
+            else Utils.list_split_idx (mid_idx + 1) children
           in
-          add_nonfull key value split_child
+          Some
+            ( (left_keys, left_children),
+              (* Left half *)
+              (right_keys, right_children),
+              (* Right half *)
+              mid_key (* Middle key *) )
 
-  (** Adds given node to tree. If current node is full, it will split it. *)
-  let add key value = function
-    | Empty -> singleton key value
-    | Node { children; keys } when List.length children = (2 * Config.t) - 1 ->
-        let new_root = split_child 1 (Node { children; keys }) in
-        add_nonfull key value new_root
-    | Node { children; keys } -> add_nonfull key value (Node { children; keys })
+  let split_child i = function
+    | Empty -> failwith "Cannot split a child of an empty node"
+    | Node { children; keys } -> (
+        let child = List.nth children i in
+        match split_in_half child with
+        | None -> failwith "Cannot split an empty child"
+        | Some
+            ((left_keys, left_children), (right_keys, right_children), mid_key)
+          ->
+            (* Create new left and right nodes from the split *)
+            let left_node =
+              Node { children = left_children; keys = left_keys }
+            in
+            let right_node =
+              Node { children = right_children; keys = right_keys }
+            in
+
+            (* Insert the middle key into the parent's keys at index `i` *)
+            let new_keys = Utils.append_at keys [ mid_key ] i in
+
+            (* Replace the child at index `i` with the new left and right nodes *)
+            let new_children =
+              Utils.append_at children [ left_node; right_node ] i
+              |> List.filteri (fun idx _ -> idx <> i + 2)
+              (* Remove the original child node *)
+            in
+            Node { children = new_children; keys = new_keys })
+
+  let rec add_nonfull key value = function
+    | Empty ->
+        singleton key
+          value (* Base case: if empty, return a new single-node tree *)
+    | Node { children; keys } -> (
+        let kv_compare (k1, _) (k2, _) = Ord.compare k1 k2 in
+        if List.is_empty children then
+          (* If the node is a leaf, add the key-value pair to the sorted list of keys *)
+          let updated_keys = Utils.add_to_sorted keys (key, value) kv_compare in
+          Node { children; keys = updated_keys }
+        else
+          (* If the node is internal, find the appropriate child to recurse into *)
+          let child_idx = Utils.lower_bound keys (key, value) kv_compare in
+          let child = List.nth children child_idx in
+          match child with
+          | Empty -> failwith "Unexpected Empty child node in non-empty BTree"
+          | Node { children = _c_keys; keys = c_values } ->
+              if List.length c_values = (2 * Config.t) - 1 then
+                (* If the child is full, split it and adjust the current node *)
+                let current = split_child child_idx (Node { children; keys }) in
+                add_nonfull key value
+                  current (* Retry insertion on the adjusted tree *)
+              else
+                (* If the child is not full, recursively insert into the child *)
+                let updated_child = add_nonfull key value child in
+                Node
+                  {
+                    children = Utils.update_at children child_idx updated_child;
+                    keys;
+                  })
+
+  (** Adds a (key, value) pair to the BTree. Handles the case where the root is full by splitting it first. *)
+  let add key value tree =
+    match tree with
+    | Empty -> singleton key value (* Base case: if empty, create a new tree *)
+    | Node { children = _; keys } ->
+        if List.length keys = (2 * Config.t) - 1 then
+          (* If the root is full, split it and create a new root *)
+          let (lk, lc), (rk, rc), mid = split_in_half tree |> Option.get in
+          let left = Node { children = lc; keys = lk } in
+          let right = Node { children = rc; keys = rk } in
+          let new_root = Node { children = [ left; right ]; keys = [ mid ] } in
+          add_nonfull key value new_root (* Retry insertion on the new root *)
+        else
+          (* If the root is not full, insert directly *)
+          add_nonfull key value tree
 
   let of_list lst =
     let initial = empty in
@@ -138,8 +180,8 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     | Node { children; keys } ->
         let map_key (k, v) = (k, f v) in
         let keys_mapped = keys |> List.map map_key in
-        let map_children c = map f c in
-        let children_mapped = children |> List.map map_children in
+        let map_child c = map f c in
+        let children_mapped = children |> List.map map_child in
         Node { children = children_mapped; keys = keys_mapped }
 
   let rec to_list = function
@@ -167,7 +209,10 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
         let fold_key_child acc (i, key) =
           f (fold_left f acc (List.nth children i)) key
         in
-        List.fold_left fold_key_child acc keys_enumerated
+        let prev_res = List.fold_left fold_key_child acc keys_enumerated in
+        let last_child = Utils.list_last children |> Option.get in
+        let res = fold_left f prev_res last_child in
+        res
 
   let rec fold_right f acc = function
     | Empty -> acc
@@ -176,15 +221,20 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     | Node { children; keys } ->
         let enumerate i x = (i, x) in
         let keys_enumerated = List.mapi enumerate keys in
+        let n_children = List.length children in
         let fold_key_child (i, key) acc =
-          f key (fold_right f acc (List.nth children i))
+          f key (fold_right f acc (List.nth children (n_children - i - 1)))
         in
-        List.fold_right fold_key_child keys_enumerated acc
+        let prev_res = List.fold_right fold_key_child keys_enumerated acc in
+        let first_child = List.nth children 0 in
+        let res = fold_right f prev_res first_child in
+        res
 
   let rec height = function
     | Empty -> 0
+    | Node { children; keys = _ } when List.is_empty children -> 1
     | Node { children; keys = _ } ->
         let children_height = children |> List.map height in
-        let max_height = List.fold_left max min_int children_height in
+        let max_height = List.fold_left max 0 children_height in
         max_height + 1
 end

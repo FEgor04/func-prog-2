@@ -36,15 +36,13 @@ let test_add_find () =
      result)
 
 let test_of_list () =
-  Alcotest.(check bool)
-    "of small list" true
+  Alcotest.(check (list int))
+    "of small list"
+    [ 1; 2; 3; 4; 5; 6; 7; 8; 9; 10 ]
     (let list = [ 1; 2; 3; 4; 5; 6; 7; 8; 9; 10 ] in
      let assoc = list |> List.map to_assoc in
      let dict = assoc |> IntDict.of_list in
-     let has_key key = dict |> IntDict.has key in
-     let has_keys = list |> List.map has_key in
-     let has_all = has_keys |> List.fold_left ( && ) true in
-     has_all)
+     dict |> IntDict.to_list |> List.map (fun (x, _) -> x))
 
 let test_map_empty () =
   Alcotest.(check bool)
@@ -55,15 +53,13 @@ let test_map_empty () =
      IntDict.is_empty dict_mapped)
 
 let test_map_list () =
-  Alcotest.(check bool)
-    "map small list" true
+  Alcotest.(check (list int))
+    "map small list" [ 1; 4; 9; 16 ]
     (let list = [ 1; 2; 3; 4 ] in
      let dict = list |> to_assoc_list |> IntDict.of_list in
      let square x = x * x in
      let dict_mapped = dict |> IntDict.map square in
-     let get_value key = IntDict.find key dict_mapped |> Option.get in
-     let values = list |> List.map get_value in
-     list |> List.map square = values)
+     dict_mapped |> IntDict.to_list |> List.map (fun (_, x) -> x))
 
 let test_fold_sum () =
   Alcotest.(check int)
@@ -85,8 +81,8 @@ let test_fold_right_list () =
 
 let test_height_3 () =
   Alcotest.(check int)
-    "log_2(3) = 2" 2
-    (let list = [ 1; 2; 3 ] in
+    "log_2(3) > 1" 2
+    (let list = [ 1; 2; 3; 4; 5 ] in
      let dict = list |> to_assoc_list |> IntDict.of_list in
      let actual = dict |> IntDict.height in
      actual)

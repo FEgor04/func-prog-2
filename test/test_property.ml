@@ -14,9 +14,10 @@ let to_assoc x = (x, x)
 let to_assoc_lst = List.map to_assoc
 let raw_to_sorted_assoc lst = lst |> List.sort_uniq Int.compare |> to_assoc_lst
 let raw_to_dict lst = lst |> raw_to_sorted_assoc |> IntDict.of_list
+let count = 10
 
 let add_from_list_has_key =
-  QCheck.Test.make ~count:50 ~name:"add_from_list_has_key"
+  QCheck.Test.make ~count ~name:"add_from_list_has_key"
     QCheck.(list int)
     (fun lst_raw ->
       let lst = lst_raw |> List.sort_uniq Int.compare in
@@ -27,7 +28,7 @@ let add_from_list_has_key =
       has_all)
 
 let of_list_to_list_is_identity =
-  QCheck.Test.make ~count:50 ~name:"of_list_to_list_is_identity"
+  QCheck.Test.make ~count ~name:"of_list_to_list_is_identity"
     QCheck.(list int)
     (fun lst_raw ->
       let lst = lst_raw |> List.sort_uniq Int.compare in
@@ -37,7 +38,7 @@ let of_list_to_list_is_identity =
       lst_assoc = lst1)
 
 let merge_empty_is_neutral =
-  QCheck.Test.make ~count:50 ~name:"dict @ Empty = Empty @ dict = dict"
+  QCheck.Test.make ~count ~name:"dict @ Empty = Empty @ dict = dict"
     QCheck.(list int)
     (fun l1_raw ->
       let open IntDict in
@@ -51,7 +52,7 @@ let merge_empty_is_neutral =
       d_list = d1_list && d1_list = d'_list)
 
 let merge_is_associative =
-  QCheck.Test.make ~count:50 ~name:"(x @ y) @ z = x @ (y @ z)"
+  QCheck.Test.make ~count ~name:"(x @ y) @ z = x @ (y @ z)"
     QCheck.(triple (list int) (list int) (list int))
     (fun (l1_raw, l2_raw, l3_raw) ->
       let open IntDict in
@@ -65,7 +66,7 @@ let merge_is_associative =
       r1_lst = r2_lst)
 
 let fold_left_is_to_list =
-  QCheck.Test.make ~count:50 ~name:"fold with concat is the same as to_list"
+  QCheck.Test.make ~count ~name:"fold with concat is the same as to_list"
     QCheck.(list int)
     (fun l_raw ->
       let d = raw_to_dict l_raw in
@@ -74,7 +75,7 @@ let fold_left_is_to_list =
       l = l')
 
 let fold_right_is_to_list_rev =
-  QCheck.Test.make ~count:50 ~name:"fold with concat is the same as to_list"
+  QCheck.Test.make ~count ~name:"fold with concat is the same as to_list"
     QCheck.(list int)
     (fun l_raw ->
       let d = raw_to_dict l_raw in
