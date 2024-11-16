@@ -70,12 +70,12 @@ let fold_left_is_to_list =
     QCheck.(list int)
     (fun l_raw ->
       let d = raw_to_dict l_raw in
-      let l = d |> IntDict.to_list in
-      let l' = IntDict.fold_left (fun acc kv -> acc @ [ kv ]) [] d in
+      let l = d |> IntDict.to_list |> List.rev in
+      let l' = IntDict.fold_left (fun acc kv -> kv :: acc) [] d in
       l = l')
 
 let fold_right_is_to_list_rev =
-  QCheck.Test.make ~count ~name:"fold with concat is the same as to_list"
+  QCheck.Test.make ~count ~name:"fold_right is to list"
     QCheck.(list int)
     (fun l_raw ->
       let d = raw_to_dict l_raw in

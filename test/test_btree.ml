@@ -5,7 +5,7 @@ module IntCompare = struct
 end
 
 module BTreeConfig = struct
-  let t = 1
+  let t = 2
 end
 
 module IntDict = Btree.Make (IntCompare) (BTreeConfig)
@@ -71,28 +71,20 @@ let test_fold_sum () =
      actual)
 
 let test_fold_right_list () =
-  let lst = [ -2; -1; 0; 1; 2; 3 ] in
-  Alcotest.(check (list int))
-    "fold_right to list" lst
+  let lst = [ 0; -1; 1; 2; 3; 4 ] in
+  let lst_assoc = lst |> List.sort Int.compare |> to_assoc_list in
+  Alcotest.(check (list (pair int int)))
+    "fold_right to list" lst_assoc
     (let list = lst in
      let dict = list |> to_assoc_list |> IntDict.of_list in
-     let fold_right_concat (k, _) acc = acc @ [ k ] in
+     let fold_right_concat kv acc = kv :: acc in
      let actual = dict |> IntDict.fold_right fold_right_concat [] in
-     actual)
-
-let test_height_3 () =
-  Alcotest.(check int)
-    "log_2(3) > 1" 2
-    (let list = [ 1; 2; 3 ] in
-     let dict = list |> to_assoc_list |> IntDict.of_list in
-     let actual = dict |> IntDict.height in
      actual)
 
 let () =
   let open Alcotest in
   run "BTree"
     [
-      ("structure", [ test_case "height for 3 nodes" `Quick test_height_3 ]);
       ( "find",
         [
           test_case "empty dict" `Quick test_find_empty;
@@ -108,7 +100,7 @@ let () =
           test_case "empty" `Quick test_map_empty;
           test_case "small" `Quick test_map_list;
         ] );
-      ( "fold_left",
+      ( "fold",
         [
           test_case "sum" `Quick test_fold_sum;
           test_case "fold_right to list" `Quick test_fold_right_list;

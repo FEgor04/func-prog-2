@@ -103,41 +103,32 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
               Node { children = right_children; keys = right_keys }
             in
 
-            (* Insert the middle key into the parent's keys at index `i` *)
             let new_keys = Utils.append_at keys [ mid_key ] i in
 
-            (* Replace the child at index `i` with the new left and right nodes *)
             let new_children =
               Utils.append_at children [ left_node; right_node ] i
               |> List.filteri (fun idx _ -> idx <> i + 2)
-              (* Remove the original child node *)
             in
             Node { children = new_children; keys = new_keys })
 
   let rec add_nonfull key value = function
-    | Empty ->
-        singleton key
-          value (* Base case: if empty, return a new single-node tree *)
+    | Empty -> singleton key value
     | Node { children; keys } -> (
         let kv_compare (k1, _) (k2, _) = Ord.compare k1 k2 in
         if List.is_empty children then
-          (* If the node is a leaf, add the key-value pair to the sorted list of keys *)
           let updated_keys = Utils.add_to_sorted keys (key, value) kv_compare in
-          Node { children; keys = updated_keys }
+          let sorted_keys = List.sort kv_compare updated_keys in
+          Node { children; keys = sorted_keys }
         else
-          (* If the node is internal, find the appropriate child to recurse into *)
           let child_idx = Utils.lower_bound keys (key, value) kv_compare in
           let child = List.nth children child_idx in
           match child with
           | Empty -> failwith "Unexpected Empty child node in non-empty BTree"
           | Node { children = _c_keys; keys = c_values } ->
               if List.length c_values = (2 * Config.t) - 1 then
-                (* If the child is full, split it and adjust the current node *)
                 let current = split_child child_idx (Node { children; keys }) in
-                add_nonfull key value
-                  current (* Retry insertion on the adjusted tree *)
+                add_nonfull key value current
               else
-                (* If the child is not full, recursively insert into the child *)
                 let updated_child = add_nonfull key value child in
                 Node
                   {
@@ -148,18 +139,15 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
   (** Adds a (key, value) pair to the BTree. Handles the case where the root is full by splitting it first. *)
   let add key value tree =
     match tree with
-    | Empty -> singleton key value (* Base case: if empty, create a new tree *)
+    | Empty -> singleton key value
     | Node { children = _; keys } ->
         if List.length keys = (2 * Config.t) - 1 then
-          (* If the root is full, split it and create a new root *)
           let (lk, lc), (rk, rc), mid = split_in_half tree |> Option.get in
           let left = Node { children = lc; keys = lk } in
           let right = Node { children = rc; keys = rk } in
           let new_root = Node { children = [ left; right ]; keys = [ mid ] } in
-          add_nonfull key value new_root (* Retry insertion on the new root *)
-        else
-          (* If the root is not full, insert directly *)
-          add_nonfull key value tree
+          add_nonfull key value new_root
+        else add_nonfull key value tree
 
   let of_list lst =
     let initial = empty in
@@ -210,16 +198,17 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     | Node { children; keys } when List.is_empty children ->
         List.fold_right f keys acc
     | Node { children; keys } ->
-        let enumerate i x = (i, x) in
-        let keys_enumerated = List.mapi enumerate keys in
-        let n_children = List.length children in
-        let fold_key_child (i, key) acc =
-          f key (fold_right f acc (List.nth children (n_children - i - 1)))
+        let rec process acc children keys =
+          match (children, keys) with
+          | [], [] -> acc
+          | child :: rest_children, key :: rest_keys ->
+              let acc_after_child = fold_right f acc child in
+              let acc_after_key = f key acc_after_child in
+              process acc_after_key rest_children rest_keys
+          | child :: _rest_children, [] -> fold_right f acc child
+          | [], keys -> List.fold_right f keys acc
         in
-        let prev_res = List.fold_right fold_key_child keys_enumerated acc in
-        let first_child = List.nth children 0 in
-        let res = fold_right f prev_res first_child in
-        res
+        process acc (List.rev children) (List.rev keys)
 
   let rec height = function
     | Empty -> 0
