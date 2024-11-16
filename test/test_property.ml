@@ -79,8 +79,8 @@ let fold_right_is_to_list_rev =
     QCheck.(list int)
     (fun l_raw ->
       let d = raw_to_dict l_raw in
-      let l = d |> IntDict.to_list |> List.rev in
-      let l' = IntDict.fold_right (fun kv acc -> acc @ [ kv ]) [] d in
+      let l = d |> IntDict.to_list in
+      let l' = IntDict.fold_right (fun kv acc -> kv :: acc) [] d in
       l = l')
 
 let () =

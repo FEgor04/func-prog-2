@@ -37,36 +37,27 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
   let is_empty = function Empty -> true | _ -> false
   let singleton k v = Node { children = []; keys = [ (k, v) ] }
 
-  (** finds index of a first key in given node that is bigger than given key*)
-  let find_child_index_by_key key = function
-    | Empty -> None
-    | Node { children; keys } -> (
-        if List.is_empty children then None
-        else
-          (* find index of the first key that is bigger than given *)
-          let is_desired_key (k, _) = Ord.compare k key = 1 in
-          let desired_index = List.find_index is_desired_key keys in
-          match desired_index with None -> Some 0 | Some x -> Some (x + 1))
-
-  (** Returns a child of given node in which `key` is supposed to be *)
-  let find_children_by_key key = function
-    | Empty -> None
-    | Node n -> (
-        let idx = find_child_index_by_key key (Node n) in
-        match idx with Some idx -> Some (List.nth n.children idx) | _ -> None)
-
+  (** Searches for a key in the BTree and returns the associated value, if it exists. *)
   let rec find key = function
     | Empty -> None
-    | Node { children; keys } -> (
-        let key_is_desired (k, _) = k = key in
-        let key_in_keys = List.find_opt key_is_desired keys in
-        match key_in_keys with
-        | None -> (
-            let next_child =
-              find_children_by_key key (Node { children; keys })
-            in
-            match next_child with None -> None | Some child -> find key child)
-        | Some (_, v) -> Some v)
+    | Node { keys; children } ->
+        (* Compare keys in the node using the provided comparator *)
+        let keys_only = keys |> List.map (fun (x, _) -> x) in
+        let idx = Utils.lower_bound keys_only key Ord.compare in
+
+        if idx < List.length keys then
+          let k, v = List.nth keys idx in
+          if Ord.compare key k = 0 then Some v (* Key found in this node *)
+          else if
+            (* Otherwise, descend into the appropriate child *)
+            List.is_empty children
+          then None
+          else find key (List.nth children idx)
+        else if
+          (* Key not found in this node; check the last child if it exists *)
+          List.is_empty children
+        then None
+        else find key (List.nth children idx)
 
   let has key t = t |> find key |> Option.is_some
 
@@ -235,6 +226,6 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     | Node { children; keys = _ } when List.is_empty children -> 1
     | Node { children; keys = _ } ->
         let children_height = children |> List.map height in
-        let max_height = List.fold_left max 0 children_height in
+        let max_height = List.fold_left max min_int children_height in
         max_height + 1
 end
