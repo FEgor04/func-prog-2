@@ -26,6 +26,7 @@ module type Dict = sig
   val fold_left : ('acc -> key * 'a -> 'acc) -> 'acc -> 'a t -> 'acc
   val fold_right : (key * 'a -> 'acc -> 'acc) -> 'acc -> 'a t -> 'acc
   val height : 'a t -> int
+  val remove : key -> 'a t -> 'a t
 end
 
 module Make (Ord : OrderedType) (Config : BTreeConfig) :
@@ -217,4 +218,6 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
         let children_height = children |> List.map height in
         let max_height = List.fold_left max min_int children_height in
         max_height + 1
+
+  let remove _key = function _ -> Empty
 end

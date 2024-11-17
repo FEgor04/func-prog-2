@@ -81,6 +81,15 @@ let test_fold_right_list () =
      let actual = dict |> IntDict.fold_right fold_right_concat [] in
      actual)
 
+let test_remove_key () =
+  let lst = [ 0; 1; 2; 3; 4 ] in
+  Alcotest.(check (list int))
+    "fold_right to list" [ 0; 2; 3; 4 ]
+    (let dict = lst |> to_assoc_list |> IntDict.of_list in
+     let d1 = dict |> IntDict.remove 1 in
+     let l' = d1 |> IntDict.to_list |> List.map (fun (k, _) -> k) in
+     l')
+
 let () =
   let open Alcotest in
   run "BTree"
@@ -105,4 +114,5 @@ let () =
           test_case "sum" `Quick test_fold_sum;
           test_case "fold_right to list" `Quick test_fold_right_list;
         ] );
+      ("remove", [ test_case "remove key" `Quick test_remove_key ]);
     ]
