@@ -38,29 +38,29 @@ let of_list_to_list_is_identity =
       lst_assoc = lst1)
 
 let merge_empty_is_neutral =
-  QCheck.Test.make ~count ~name:"dict @ Empty = Empty @ dict = dict"
+  QCheck.Test.make ~count ~name:"dict >>= Empty = Empty >>= dict = dict"
     QCheck.(list int)
     (fun l1_raw ->
       let open IntDict in
       let d1 = l1_raw |> raw_to_sorted_assoc |> IntDict.of_list in
       let d2 = IntDict.empty in
-      let d = d1 @ d2 in
-      let d' = d1 @ d2 in
+      let d = d1 >>= d2 in
+      let d' = d1 >>= d2 in
       let d1_list = IntDict.to_list d1 in
       let d_list = IntDict.to_list d in
       let d'_list = IntDict.to_list d' in
       d_list = d1_list && d1_list = d'_list)
 
 let merge_is_associative =
-  QCheck.Test.make ~count ~name:"(x @ y) @ z = x @ (y @ z)"
+  QCheck.Test.make ~count ~name:"(x >>= y) >>= z = x >>= (y >>= z)"
     QCheck.(triple (list int) (list int) (list int))
     (fun (l1_raw, l2_raw, l3_raw) ->
       let open IntDict in
       let d1 = raw_to_dict l1_raw in
       let d2 = raw_to_dict l2_raw in
       let d3 = raw_to_dict l3_raw in
-      let r1 = (d1 @ d2) @ d3 in
-      let r2 = d1 @ d2 @ d3 in
+      let r1 = d1 >>= d2 >>= d3 in
+      let r2 = d1 >>= d2 >>= d3 in
       let r1_lst = r1 |> IntDict.to_list in
       let r2_lst = r2 |> IntDict.to_list in
       r1_lst = r2_lst)

@@ -22,7 +22,7 @@ module type Dict = sig
   val map : ('a -> 'b) -> 'a t -> 'b t
   val to_list : 'a t -> (key * 'a) list
   val merge : 'a t -> 'a t -> 'a t
-  val ( @ ) : 'a t -> 'a t -> 'a t
+  val ( >>= ) : 'a t -> 'a t -> 'a t
   val fold_left : ('acc -> key * 'a -> 'acc) -> 'acc -> 'a t -> 'acc
   val fold_right : (key * 'a -> 'acc -> 'acc) -> 'acc -> 'a t -> 'acc
   val height : 'a t -> int
@@ -177,7 +177,7 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     let result = List.fold_left add_to_tree t1 t2_values in
     result
 
-  let ( @ ) = merge
+  let ( >>= ) = merge
 
   let rec fold_left f acc = function
     | Empty -> acc
