@@ -93,6 +93,24 @@ let no_find_after_remove =
       let has = IntDict.has elem d' in
       has = false)
 
+let filter_false =
+  QCheck.Test.make ~count ~name:"filter(false) is always empty"
+    QCheck.(list int)
+    (fun l_raw ->
+      let d = raw_to_dict l_raw in
+      let d_filtered = d |> IntDict.filter (fun _ -> false) in
+      IntDict.is_empty d_filtered)
+
+let filter_true =
+  QCheck.Test.make ~count ~name:"filter(true) is the same dict"
+    QCheck.(list int)
+    (fun l_raw ->
+      let d = raw_to_dict l_raw in
+      let d_filtered = d |> IntDict.filter (fun _ -> true) in
+      let d_list = d |> IntDict.to_list in
+      let d_filtered_list = d_filtered |> IntDict.to_list in
+      d_filtered_list = d_list)
+
 let () =
   let add_suite =
     List.map QCheck_alcotest.to_alcotest [ add_from_list_has_key ]
@@ -111,6 +129,9 @@ let () =
   let remove_suite =
     List.map QCheck_alcotest.to_alcotest [ no_find_after_remove ]
   in
+  let filter_suite =
+    List.map QCheck_alcotest.to_alcotest [ filter_false; filter_true ]
+  in
   Alcotest.run "quickcheck"
     [
       ("add_suite", add_suite);
@@ -118,4 +139,5 @@ let () =
       ("monoid_properties", monoid_properties);
       ("fold", fold_suite);
       ("remove", remove_suite);
+      ("filter", filter_suite);
     ]

@@ -27,6 +27,7 @@ module type Dict = sig
   val fold_right : (key * 'a -> 'acc -> 'acc) -> 'acc -> 'a t -> 'acc
   val height : 'a t -> int
   val remove : key -> 'a t -> 'a t
+  val filter : (key * 'a -> bool) -> 'a t -> 'a t
 end
 
 module Make (Ord : OrderedType) (Config : BTreeConfig) :
@@ -440,4 +441,8 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
               children |> Utils.replace_at child_idx child_updated
             in
             Node { children = children_updated; keys })
+
+  let filter f t =
+    let filtered = t |> to_list |> List.filter f in
+    of_list filtered
 end
