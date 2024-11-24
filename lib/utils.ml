@@ -168,35 +168,16 @@ let%expect_test "add_to_sorted equal" =
     1 2 3 3 4 5
     |}]
 
-(** Updates the element at index `idx` in the list `lst` with the value `new_value`.
-      If `idx` is out of bounds, it raises `Invalid_argument`. *)
-let update_at lst idx new_value =
-  if idx < 0 || idx >= List.length lst then
-    invalid_arg "Utils.update_at: index out of bounds"
-  else List.mapi (fun i x -> if i = idx then new_value else x) lst
-
 let rec list_last = function
   | [] -> None
   | [ x ] -> Some x
   | _x :: hd -> list_last hd
 
-let remove_at idx lst =
-  if idx < 0 || idx >= List.length lst then failwith "Index out of bounds"
-  else
-    let rec aux i = function
-      | [] -> []
-      | _ :: tl when i = idx -> tl
-      | hd :: tl -> hd :: aux (i + 1) tl
-    in
-    aux 0 lst
+let remove_last lst =
+  let n = List.length lst in
+  List.filteri (fun i _ -> i < n - 1) lst
 
-let insert_at idx elem lst =
-  if idx < 0 || idx > List.length lst then failwith "Index out of bounds"
-  else
-    let rec aux i = function
-      | [] when i = idx -> [ elem ]
-      | [] -> []
-      | hd :: tl when i = idx -> elem :: hd :: tl
-      | hd :: tl -> hd :: aux (i + 1) tl
-    in
-    aux 0 lst
+let replace_at idx elem lst =
+  lst |> List.mapi (fun i x -> if i == idx then elem else x)
+
+let remove_at idx = List.filteri (fun i _ -> i != idx)
