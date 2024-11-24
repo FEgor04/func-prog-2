@@ -14,7 +14,7 @@ let to_assoc x = (x, x)
 let to_assoc_lst = List.map to_assoc
 let raw_to_sorted_assoc lst = lst |> List.sort_uniq Int.compare |> to_assoc_lst
 let raw_to_dict lst = lst |> raw_to_sorted_assoc |> IntDict.of_list
-let count = 10
+let count = 1000
 
 let add_from_list_has_key =
   QCheck.Test.make ~count ~name:"add_from_list_has_key"
