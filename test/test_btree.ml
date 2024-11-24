@@ -5,7 +5,7 @@ module IntCompare = struct
 end
 
 module BTreeConfig = struct
-  let t = 2
+  let t = 10
 end
 
 module IntDict = Btree.Make (IntCompare) (BTreeConfig)

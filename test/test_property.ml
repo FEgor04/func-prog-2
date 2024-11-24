@@ -5,7 +5,7 @@ module IntCompare = struct
 end
 
 module BTreeConfig = struct
-  let t = 2
+  let t = 10
 end
 
 module IntDict = Btree.Make (IntCompare) (BTreeConfig)
@@ -111,6 +111,15 @@ let filter_true =
       let d_filtered_list = d_filtered |> IntDict.to_list in
       d_filtered_list = d_list)
 
+let equals_for_same_lists =
+  QCheck.Test.make ~count ~name:"l |> of_dist = l |> of_dict"
+    QCheck.(list int)
+    (fun l_raw ->
+      let open IntDict in
+      let d1 = raw_to_dict l_raw in
+      let d2 = raw_to_dict l_raw in
+      d1 ^-^ d2)
+
 let () =
   let add_suite =
     List.map QCheck_alcotest.to_alcotest [ add_from_list_has_key ]
@@ -132,6 +141,9 @@ let () =
   let filter_suite =
     List.map QCheck_alcotest.to_alcotest [ filter_false; filter_true ]
   in
+  let equals_suite =
+    List.map QCheck_alcotest.to_alcotest [ equals_for_same_lists ]
+  in
   Alcotest.run "quickcheck"
     [
       ("add_suite", add_suite);
@@ -140,4 +152,5 @@ let () =
       ("fold", fold_suite);
       ("remove", remove_suite);
       ("filter", filter_suite);
+      ("equals", equals_suite);
     ]

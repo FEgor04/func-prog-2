@@ -39,6 +39,7 @@ module type Dict = sig
   val height : 'a t -> int
   val remove : key -> 'a t -> 'a t
   val filter : (key * 'a -> bool) -> 'a t -> 'a t
+  val ( ^-^ ) : 'a t -> 'a t -> bool
 end
 
 module Make (Ord : OrderedType) (_ : BTreeConfig) : Dict with type key = Ord.t
