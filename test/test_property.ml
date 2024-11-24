@@ -83,6 +83,16 @@ let fold_right_is_to_list_rev =
       let l' = IntDict.fold_right (fun kv acc -> kv :: acc) [] d in
       l = l')
 
+let no_find_after_remove =
+  QCheck.Test.make ~count ~name:"can't find key after remove"
+    QCheck.(pair (list int) int)
+    (fun (l_raw, elem) ->
+      QCheck.assume (List.find_opt (fun x -> x = elem) l_raw |> Option.is_some);
+      let d = raw_to_dict l_raw in
+      let d' = IntDict.remove elem d in
+      let has = IntDict.has elem d' in
+      has = false)
+
 let () =
   let add_suite =
     List.map QCheck_alcotest.to_alcotest [ add_from_list_has_key ]
@@ -98,10 +108,14 @@ let () =
     List.map QCheck_alcotest.to_alcotest
       [ fold_left_is_to_list; fold_right_is_to_list_rev ]
   in
+  let remove_suite =
+    List.map QCheck_alcotest.to_alcotest [ no_find_after_remove ]
+  in
   Alcotest.run "quickcheck"
     [
       ("add_suite", add_suite);
       ("of_list_to_list", of_list_to_list);
       ("monoid_properties", monoid_properties);
       ("fold", fold_suite);
+      ("remove", remove_suite);
     ]
