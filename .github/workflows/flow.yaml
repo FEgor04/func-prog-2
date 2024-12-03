@@ -24,7 +24,6 @@ jobs:
           dune-cache: true
 
       - run: opam install . --deps-only --with-test
-      - run: opam install ocamlformat
 
       - run: opam exec -- dune build @fmt
-      - run: opam exec -- dune runtest
+      - run: opam exec -- dune test

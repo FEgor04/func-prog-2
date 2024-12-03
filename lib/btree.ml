@@ -44,7 +44,8 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     let keys_only = keys |> List.map (fun (x, _) -> x) in
     Utils.lower_bound keys_only key Ord.compare
 
-  (** Searches for a key in the BTree and returns the associated value, if it exists. *)
+  (** Searches for a key in the BTree and returns the associated value, if it
+      exists. *)
   let rec find key = function
     | Empty -> None
     | Node { keys; children } ->
@@ -67,8 +68,8 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
 
   let has key t = t |> find key |> Option.is_some
 
-  (** Splits the child node at index `i` of the given parent node. 
-    Updates the parent node with the new split structure. *)
+  (** Splits the child node at index `i` of the given parent node. Updates the
+      parent node with the new split structure. *)
   let split_in_half = function
     | Empty -> None (* Cannot split an empty node *)
     | Node { keys; children } ->
@@ -90,7 +91,8 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
               (* Left half *)
               (right_keys, right_children),
               (* Right half *)
-              mid_key (* Middle key *) )
+              mid_key
+              (* Middle key *) )
 
   let split_child i = function
     | Empty -> failwith "Cannot split a child of an empty node"
@@ -142,7 +144,8 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
                     keys;
                   })
 
-  (** Adds a (key, value) pair to the BTree. Handles the case where the root is full by splitting it first. *)
+  (** Adds a (key, value) pair to the BTree. Handles the case where the root is
+      full by splitting it first. *)
   let add key value tree =
     match tree with
     | Empty -> singleton key value
