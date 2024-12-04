@@ -99,7 +99,9 @@ let%expect_test "append_at end" =
     1 2 3 4 5 6
     |}]
 
-(** Returns index of a first element that is greater or equal to current *)
+(** Returns index of a first element that is greater or equal to current TODO:
+    rewrite to binary search, since we only call this function with sorted array
+*)
 let lower_bound lst value comparator =
   let is_good x = comparator x value >= 0 in
   let idx = List.find_index is_good lst in

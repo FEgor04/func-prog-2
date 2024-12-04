@@ -44,27 +44,26 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     let keys_only = keys |> List.map (fun (x, _) -> x) in
     Utils.lower_bound keys_only key Ord.compare
 
-  (** Searches for a key in the BTree and returns the associated value, if it
-      exists. *)
+  let find_current key = function
+    | Empty -> None
+    | Node { keys; children = _ } -> (
+        let idx = find_key_idx key keys in
+        let kv = List.nth_opt keys idx in
+        match kv with
+        | Some (k, v) when Ord.compare k key = 0 -> Some v
+        | _ -> None)
+
   let rec find key = function
     | Empty -> None
+    | Node { keys; children } when List.is_empty children ->
+        let value_current = find_current key (Node { children; keys }) in
+        value_current
     | Node { keys; children } ->
-        (* Compare keys in the node using the provided comparator *)
         let idx = find_key_idx key keys in
-
-        if idx < List.length keys then
-          let k, v = List.nth keys idx in
-          if Ord.compare key k = 0 then Some v (* Key found in this node *)
-          else if
-            (* Otherwise, descend into the appropriate child *)
-            List.is_empty children
-          then None
-          else find key (List.nth children idx)
-        else if
-          (* Key not found in this node; check the last child if it exists *)
-          List.is_empty children
-        then None
-        else find key (List.nth children idx)
+        let value_current = find_current key (Node { children; keys }) in
+        Option.fold
+          ~none:(find key (List.nth children idx))
+          ~some:Option.some value_current
 
   let has key t = t |> find key |> Option.is_some
 
