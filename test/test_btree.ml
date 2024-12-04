@@ -35,6 +35,15 @@ let test_add_find () =
      let result = IntDict.has 1 dict && IntDict.has 2 dict in
      result)
 
+let test_add_conflict () =
+  let new_value = 100 in
+  Alcotest.(check int)
+    "add key when it already exists" new_value
+    (let dict = IntDict.empty |> IntDict.add 1 1 in
+     let d' = dict |> IntDict.add 1 new_value in
+     let result = d' |> IntDict.find 1 |> Option.get in
+     result)
+
 let test_of_list () =
   Alcotest.(check (list int))
     "of small list"
@@ -102,7 +111,11 @@ let () =
           test_case "singleton dict, key does not exist" `Quick
             test_find_singleton_key_not_exists;
         ] );
-      ("add", [ test_case "add two keys then find them" `Quick test_add_find ]);
+      ( "add",
+        [
+          test_case "add two keys then find them" `Quick test_add_find;
+          test_case "add with conflict" `Quick test_add_conflict;
+        ] );
       ("of_list", [ test_case "small list" `Quick test_of_list ]);
       ( "map",
         [

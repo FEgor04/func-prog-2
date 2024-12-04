@@ -67,11 +67,14 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
 
   let has key t = t |> find key |> Option.is_some
 
-  (** Splits the child node at index `i` of the given parent node. Updates the
-      parent node with the new split structure. *)
+  (** Splits the child node at index [i] of the given parent node. Updates the
+      parent node with the new split structure.
+
+      Requires: [node] is not [Empty], [node] has at least two children *)
   let split_in_half = function
-    | Empty -> failwith "Wrong split_in_half call"
-    | Node { keys = _; children = [ _ ] } -> failwith "Wrong split_in_half call"
+    | Empty -> failwith "Wrong split_in_half call: node is empty"
+    | Node { keys = _; children = [ _ ] } ->
+        failwith "Wrong split_in_half call: node has only one child"
     | Node { keys; children } ->
         let n = List.length keys in
         let mid_idx = n / 2 in
