@@ -109,42 +109,40 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
 
   let rec add_nonfull key value = function
     | Empty -> singleton key value
-    | Node { children; keys } -> (
+    | Node { children = []; keys } ->
         let kv_compare (k1, _) (k2, _) = Ord.compare k1 k2 in
-        if List.is_empty children then
-          let updated_keys = Utils.add_to_sorted keys (key, value) kv_compare in
-          let sorted_keys = List.sort kv_compare updated_keys in
-          Node { children; keys = sorted_keys }
-        else
-          let child_idx = Utils.lower_bound keys (key, value) kv_compare in
-          let child = List.nth children child_idx in
-          match child with
-          | Empty -> failwith "Unexpected Empty child node in non-empty BTree"
-          | Node { children = _c_keys; keys = c_values } ->
-              if List.length c_values = (2 * Config.t) - 1 then
-                let current = split_child child_idx (Node { children; keys }) in
-                add_nonfull key value current
-              else
-                let updated_child = add_nonfull key value child in
-                Node
-                  {
-                    children = Utils.replace_at child_idx updated_child children;
-                    keys;
-                  })
+        let updated_keys = Utils.add_to_sorted keys (key, value) kv_compare in
+        let sorted_keys = List.sort kv_compare updated_keys in
+        Node { children = []; keys = sorted_keys }
+    | Node { children; keys } -> (
+        let child_idx = find_key_idx key keys in
+        let child = List.nth children child_idx in
+        match child with
+        | Empty -> failwith "Unexpected Empty child node in non-empty BTree"
+        | Node { children = _c_keys; keys = c_values }
+          when List.length c_values = (2 * Config.t) - 1 ->
+            let current = split_child child_idx (Node { children; keys }) in
+            add_nonfull key value current
+        | Node { children = _; keys = _ } ->
+            let updated_child = add_nonfull key value child in
+            Node
+              {
+                children = Utils.replace_at child_idx updated_child children;
+                keys;
+              })
 
   (** Adds a (key, value) pair to the BTree. Handles the case where the root is
       full by splitting it first. *)
   let add key value tree =
     match tree with
     | Empty -> singleton key value
-    | Node { children = _; keys } ->
-        if List.length keys = (2 * Config.t) - 1 then
-          let (lk, lc), (rk, rc), mid = split_in_half tree in
-          let left = Node { children = lc; keys = lk } in
-          let right = Node { children = rc; keys = rk } in
-          let new_root = Node { children = [ left; right ]; keys = [ mid ] } in
-          add_nonfull key value new_root
-        else add_nonfull key value tree
+    | Node { children = _; keys } when List.length keys = (2 * Config.t) - 1 ->
+        let (lk, lc), (rk, rc), mid = split_in_half tree in
+        let left = Node { children = lc; keys = lk } in
+        let right = Node { children = rc; keys = rk } in
+        let new_root = Node { children = [ left; right ]; keys = [ mid ] } in
+        add_nonfull key value new_root
+    | _ -> add_nonfull key value tree
 
   let of_list lst =
     let initial = empty in
@@ -160,6 +158,7 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
         let children_mapped = children |> List.map map_child in
         Node { children = children_mapped; keys = keys_mapped }
 
+  (** TODO: remove List.merge or replace with fold_left *)
   let rec to_list = function
     | Empty -> []
     | Node { children; keys } ->
