@@ -70,53 +70,42 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
   (** Splits the child node at index `i` of the given parent node. Updates the
       parent node with the new split structure. *)
   let split_in_half = function
-    | Empty -> None (* Cannot split an empty node *)
+    | Empty -> failwith "Wrong split_in_half call"
+    | Node { keys = _; children = [ _ ] } -> failwith "Wrong split_in_half call"
     | Node { keys; children } ->
         let n = List.length keys in
-        if n < 1 then None (* Cannot split a node without keys *)
-        else
-          let mid_idx = n / 2 in
-          (* Split keys into left and right around the middle key *)
-          let[@warning "-partial-match"] left_keys, mid_key :: right_keys =
-            Utils.list_split_idx mid_idx keys
-          in
-          (* Split children into left and right around the middle index *)
-          let left_children, right_children =
-            if List.is_empty children then ([], [])
-            else Utils.list_split_idx (mid_idx + 1) children
-          in
-          Some
-            ( (left_keys, left_children),
-              (* Left half *)
-              (right_keys, right_children),
-              (* Right half *)
-              mid_key
-              (* Middle key *) )
+        let mid_idx = n / 2 in
+        (* Split keys into left and right around the middle key *)
+        let[@warning "-partial-match"] left_keys, mid_key :: right_keys =
+          Utils.list_split_idx mid_idx keys
+        in
+        (* Split children into left and right around the middle index *)
+        let left_children, right_children =
+          if List.is_empty children then ([], [])
+          else Utils.list_split_idx (mid_idx + 1) children
+        in
+        ((left_keys, left_children), (right_keys, right_children), mid_key)
 
   let split_child i = function
     | Empty -> failwith "Cannot split a child of an empty node"
-    | Node { children; keys } -> (
+    | Node { children; keys } ->
         let child = List.nth children i in
-        match split_in_half child with
-        | None -> failwith "Cannot split an empty child"
-        | Some
-            ((left_keys, left_children), (right_keys, right_children), mid_key)
-          ->
-            (* Create new left and right nodes from the split *)
-            let left_node =
-              Node { children = left_children; keys = left_keys }
-            in
-            let right_node =
-              Node { children = right_children; keys = right_keys }
-            in
+        let (left_keys, left_children), (right_keys, right_children), mid_key =
+          split_in_half child
+        in
+        (* Create new left and right nodes from the split *)
+        let left_node = Node { children = left_children; keys = left_keys } in
+        let right_node =
+          Node { children = right_children; keys = right_keys }
+        in
 
-            let new_keys = Utils.append_at keys [ mid_key ] i in
+        let new_keys = Utils.append_at keys [ mid_key ] i in
 
-            let new_children =
-              Utils.append_at children [ left_node; right_node ] i
-              |> List.filteri (fun idx _ -> idx <> i + 2)
-            in
-            Node { children = new_children; keys = new_keys })
+        let new_children =
+          Utils.append_at children [ left_node; right_node ] i
+          |> Utils.remove_at (i + 2)
+        in
+        Node { children = new_children; keys = new_keys }
 
   let rec add_nonfull key value = function
     | Empty -> singleton key value
@@ -150,7 +139,7 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     | Empty -> singleton key value
     | Node { children = _; keys } ->
         if List.length keys = (2 * Config.t) - 1 then
-          let (lk, lc), (rk, rc), mid = split_in_half tree |> Option.get in
+          let (lk, lc), (rk, rc), mid = split_in_half tree in
           let left = Node { children = lc; keys = lk } in
           let right = Node { children = rc; keys = rk } in
           let new_root = Node { children = [ left; right ]; keys = [ mid ] } in
