@@ -60,7 +60,7 @@ let merge_is_associative =
       let d2 = raw_to_dict l2_raw in
       let d3 = raw_to_dict l3_raw in
       let r1 = d1 >>= d2 >>= d3 in
-      let r2 = d1 >>= d2 >>= d3 in
+      let r2 = d1 >>= (d2 >>= d3) in
       let r1_lst = r1 |> IntDict.to_list in
       let r2_lst = r2 |> IntDict.to_list in
       r1_lst = r2_lst)
