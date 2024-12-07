@@ -42,21 +42,16 @@ let merge_empty_is_neutral =
   QCheck.Test.make ~count ~name:"dict >>= Empty = Empty >>= dict = dict"
     QCheck.(list int)
     (fun l1_raw ->
-      let open IntDict in
       let d1 = l1_raw |> raw_to_sorted_assoc |> IntDict.of_list in
       let d2 = IntDict.empty in
       let d = d1 >>= d2 in
       let d' = d1 >>= d2 in
-      let d1_list = IntDict.to_list d1 in
-      let d_list = IntDict.to_list d in
-      let d'_list = IntDict.to_list d' in
-      d_list = d1_list && d1_list = d'_list)
+      (d ^-^ d') && (d' ^-^ d1))
 
 let merge_is_associative =
   QCheck.Test.make ~count ~name:"(x >>= y) >>= z = x >>= (y >>= z)"
     QCheck.(triple (list int) (list int) (list int))
     (fun (l1_raw, l2_raw, l3_raw) ->
-      let open IntDict in
       let d1 = raw_to_dict l1_raw in
       let d2 = raw_to_dict l2_raw in
       let d3 = raw_to_dict l3_raw in
@@ -106,15 +101,12 @@ let filter_true =
     (fun l_raw ->
       let d = raw_to_dict l_raw in
       let d_filtered = d |> IntDict.filter (fun _ -> true) in
-      let d_list = d |> IntDict.to_list in
-      let d_filtered_list = d_filtered |> IntDict.to_list in
-      d_filtered_list = d_list)
+      d_filtered ^-^ d)
 
 let equals_for_same_lists =
   QCheck.Test.make ~count ~name:"l |> of_dist = l |> of_dict"
     QCheck.(list int)
     (fun l_raw ->
-      let open IntDict in
       let d1 = raw_to_dict l_raw in
       let d2 = raw_to_dict l_raw in
       d1 ^-^ d2)
