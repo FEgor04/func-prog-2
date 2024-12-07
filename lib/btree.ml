@@ -152,14 +152,18 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     let add_to_acc acc (k, v) = acc |> add k v in
     lst |> List.fold_left add_to_acc initial
 
-  let rec map f = function
+  let rec mapk f = function
     | Empty -> Empty
     | Node { children; keys } ->
-        let map_key (k, v) = (k, f v) in
+        let map_key (k, v) = (k, f (k, v)) in
         let keys_mapped = keys |> List.map map_key in
-        let map_child c = map f c in
+        let map_child c = mapk f c in
         let children_mapped = children |> List.map map_child in
         Node { children = children_mapped; keys = keys_mapped }
+
+  let map f =
+    let map_value (_, v) = f v in
+    mapk map_value
 
   (** TODO: remove List.merge or replace with fold_left *)
   let rec to_list = function
@@ -440,8 +444,18 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     let filtered = t |> to_list |> List.filter f in
     of_list filtered
 
-  (** TODO: implement with t1 subset t2 && t2 subset t1 *)
-  let equals t1 t2 = to_list t1 = to_list t2
+  let subset t1 t2 =
+    let t1_has_element (key, value) =
+      match find key t1 with Some actual -> actual = value | None -> false
+    in
+    let t1_has_all_t2 = mapk t1_has_element t2 in
+    fold_left (fun acc (_, v) -> acc && v) true t1_has_all_t2
+
+  let ( <<= ) = subset
+
+  (** I'm not sure that this implementation is actually better than simply
+      conerting trees to list and comparing them *)
+  let equals t1 t2 = t1 <<= t2 && t2 <<= t1
 
   let ( ^-^ ) = equals
 end
