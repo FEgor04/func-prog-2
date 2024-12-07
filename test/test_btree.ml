@@ -70,6 +70,15 @@ let test_map_list () =
      let dict_mapped = dict |> IntDict.map square in
      dict_mapped |> IntDict.to_list |> List.map (fun (_, x) -> x))
 
+let test_map_poly () =
+  let input = [ 1; 2; 3; 4; 5; 6 ] in
+  let expected = [ "1"; "2"; "3"; "4"; "5"; "6" ] in
+  Alcotest.(check (list string))
+    "map small list" expected
+    (let dict = input |> to_assoc_list |> IntDict.of_list in
+     let dict_mapped = dict |> IntDict.map string_of_int in
+     dict_mapped |> IntDict.to_list |> List.map (fun (_, x) -> x))
+
 let test_fold_sum () =
   Alcotest.(check int)
     "1 + 2 + 3 + 4 = " 10
@@ -121,6 +130,7 @@ let () =
         [
           test_case "empty" `Quick test_map_empty;
           test_case "small" `Quick test_map_list;
+          test_case "int -> string" `Quick test_map_poly;
         ] );
       ( "fold",
         [
