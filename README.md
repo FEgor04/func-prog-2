@@ -2,7 +2,8 @@
 
 [![Build, test, lint](https://github.com/FEgor04/func-prog-2/actions/workflows/flow.yaml/badge.svg)](https://github.com/FEgor04/func-prog-2/actions/workflows/flow.yaml)
 
-Вариант: `bt-dict`
+- Федоров Егор, P3315
+- Вариант: `bt-dict`
 
 ### Задание
 
