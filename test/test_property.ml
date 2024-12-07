@@ -9,6 +9,7 @@ module BTreeConfig = struct
 end
 
 module IntDict = Btree.Make (IntCompare) (BTreeConfig)
+open IntDict
 
 let to_assoc x = (x, x)
 let to_assoc_lst = List.map to_assoc
@@ -61,9 +62,7 @@ let merge_is_associative =
       let d3 = raw_to_dict l3_raw in
       let r1 = d1 >>= d2 >>= d3 in
       let r2 = d1 >>= (d2 >>= d3) in
-      let r1_lst = r1 |> IntDict.to_list in
-      let r2_lst = r2 |> IntDict.to_list in
-      r1_lst = r2_lst)
+      r1 ^-^ r2)
 
 let fold_left_is_to_list =
   QCheck.Test.make ~count ~name:"fold with concat is the same as to_list"

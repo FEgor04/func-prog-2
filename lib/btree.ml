@@ -440,17 +440,8 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     let filtered = t |> to_list |> List.filter f in
     of_list filtered
 
-  let rec equals t1 t2 =
-    match (t1, t2) with
-    | Node { children = []; keys = k1 }, Node { children = []; keys = k2 } ->
-        k1 = k2
-    | Node { children = c1; keys = k1 }, Node { children = c2; keys = k2 }
-      when k1 = k2 && List.length c1 = List.length c2 ->
-        let equal_to_t2 i c = equals c (List.nth c2 i) in
-        let children_equal = c1 |> List.mapi equal_to_t2 in
-        children_equal |> List.fold_left ( && ) true
-    | Empty, Empty -> true
-    | _, _ -> false
+  (** TODO: implement with t1 subset t2 && t2 subset t1 *)
+  let equals t1 t2 = to_list t1 = to_list t2
 
   let ( ^-^ ) = equals
 end
