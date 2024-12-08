@@ -4,11 +4,21 @@ module IntCompare = struct
   let compare = Int.compare
 end
 
+module StringCompare = struct
+  type t = string
+
+  let compare = String.compare
+end
+
 module BTreeConfig = struct
   let t = 10
 end
 
 module IntDict = Btree.Make (IntCompare) (BTreeConfig)
+module StringDict = Btree.Make (StringCompare) (BTreeConfig)
+
+module IntToStringMapper =
+  Mapper.Make (IntCompare) (StringCompare) (BTreeConfig)
 
 let to_assoc x = (x, x)
 let to_assoc_list = List.map to_assoc
@@ -79,6 +89,19 @@ let test_map_poly () =
      let dict_mapped = dict |> IntDict.map string_of_int in
      dict_mapped |> IntDict.to_list |> List.map (fun (_, x) -> x))
 
+let test_map_different_key_types () =
+  let input = [ 1; 2; 3; 4; 5; 6 ] in
+  let expected = [ "1"; "2"; "3"; "4"; "5"; "6" ] in
+  Alcotest.(check (list string))
+    "map (int, int) -> ((string; string)" expected
+    (let dict = input |> to_assoc_list |> IntDict.of_list in
+     let dict_mapped =
+       IntToStringMapper.map
+         (fun (k, v) -> (string_of_int k, string_of_int v))
+         dict
+     in
+     dict_mapped |> StringDict.to_list |> List.map (fun (k, _) -> k))
+
 let test_fold_sum () =
   Alcotest.(check int)
     "1 + 2 + 3 + 4 = " 10
@@ -131,6 +154,8 @@ let () =
           test_case "empty" `Quick test_map_empty;
           test_case "small" `Quick test_map_list;
           test_case "int -> string" `Quick test_map_poly;
+          test_case "(int, int) -> (string, stirng)" `Quick
+            test_map_different_key_types;
         ] );
       ( "fold",
         [

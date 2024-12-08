@@ -1,6 +1,6 @@
 (test
  (name test_btree)
- (libraries qcheck qcheck-alcotest alcotest btree))
+ (libraries qcheck qcheck-alcotest alcotest btree mapper))
 
 (test
  (name test_property)
