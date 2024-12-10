@@ -1,24 +1,10 @@
-module IntCompare = struct
-  type t = int
-
-  let compare = Int.compare
-end
-
-module StringCompare = struct
-  type t = string
-
-  let compare = String.compare
-end
-
 module BTreeConfig = struct
   let t = 10
 end
 
-module IntDict = Btree.Make (IntCompare) (BTreeConfig)
-module StringDict = Btree.Make (StringCompare) (BTreeConfig)
-
-module IntToStringMapper =
-  Mapper.Make (IntCompare) (StringCompare) (BTreeConfig)
+module IntDict = Btree.Make (Int) (BTreeConfig)
+module StringDict = Btree.Make (String) (BTreeConfig)
+module IntToStringMapper = Mapper.Make (Int) (String) (BTreeConfig)
 
 let to_assoc x = (x, x)
 let to_assoc_list = List.map to_assoc
