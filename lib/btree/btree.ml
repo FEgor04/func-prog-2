@@ -444,18 +444,28 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
     let filtered = t |> to_list |> List.filter f in
     of_list filtered
 
-  let subset t1 t2 =
+  let size t = fold_left (fun acc _ -> acc + 1) 0 t
+
+  (** Check if t1 is a subset of t2, that is, t1 contains all elements of t2 *)
+  let rec subset t1 t2 =
     let t1_has_element (key, value) =
       match find key t1 with Some actual -> actual = value | None -> false
     in
-    let t1_has_all_t2 = mapk t1_has_element t2 in
-    fold_left (fun acc (_, v) -> acc && v) true t1_has_all_t2
+    match t2 with
+    | Empty -> true
+    | Node { children; keys } ->
+        let has_all_current_keys = List.for_all t1_has_element keys in
+        if not has_all_current_keys then false
+        else List.for_all (fun child -> subset t1 child) children
 
   let ( <<= ) = subset
 
   (** I'm not sure that this implementation is actually better than simply
       conerting trees to list and comparing them *)
-  let equals t1 t2 = t1 <<= t2 && t2 <<= t1
+  let equals t1 t2 =
+    let n1 = size t1 in
+    let n2 = size t2 in
+    n1 == n2 && t1 <<= t2 && t2 <<= t1
 
   let ( ^-^ ) = equals
 end
