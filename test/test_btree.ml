@@ -3,8 +3,6 @@ module BTreeConfig = struct
 end
 
 module IntDict = Btree.Make (Int) (BTreeConfig)
-module StringDict = Btree.Make (String) (BTreeConfig)
-module IntToStringMapper = Mapper.Make (Int) (String) (BTreeConfig)
 
 let to_assoc x = (x, x)
 let to_assoc_list = List.map to_assoc
@@ -76,6 +74,8 @@ let test_map_poly () =
      dict_mapped |> IntDict.to_list |> List.map (fun (_, x) -> x))
 
 let test_map_different_key_types () =
+  let module StringDict = Btree.Make (String) (BTreeConfig) in
+  let module IntToStringMapper = Mapper.Make (Int) (String) (BTreeConfig) in
   let input = [ 1; 2; 3; 4; 5; 6 ] in
   let expected = [ "1"; "2"; "3"; "4"; "5"; "6" ] in
   Alcotest.(check (list string))
