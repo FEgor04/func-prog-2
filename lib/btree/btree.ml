@@ -446,7 +446,8 @@ module Make (Ord : OrderedType) (Config : BTreeConfig) :
 
   let size t = fold_left (fun acc _ -> acc + 1) 0 t
 
-  (** Check if t1 is a subset of t2, that is, t1 contains all elements of t2 *)
+  (** [subset t1 t2] checks if [t1] is a subset of [t2], that is, [t1] contains
+      all elements of [t2] *)
   let rec subset t1 t2 =
     let t1_has_element (key, value) =
       match find key t1 with Some actual -> actual = value | None -> false
