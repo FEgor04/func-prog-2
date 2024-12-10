@@ -5,38 +5,30 @@ end
 module IntDict = Btree.Make (Int) (BTreeConfig)
 open IntDict
 
-let to_assoc x = (x, x)
-let to_assoc_lst = List.map to_assoc
-let raw_to_sorted_assoc lst = lst |> List.sort_uniq Int.compare |> to_assoc_lst
-let raw_to_dict lst = lst |> raw_to_sorted_assoc |> IntDict.of_list
 let count = 1000
+let generate_assoc_list = QCheck.(list (pair int int))
 
 let add_from_list_has_key =
-  QCheck.Test.make ~count ~name:"add_from_list_has_key"
-    QCheck.(list int)
-    (fun lst_raw ->
-      let lst = lst_raw |> List.sort_uniq Int.compare in
-      let lst_assoc = lst |> to_assoc_lst in
-      let dict = lst_assoc |> IntDict.of_list in
-      let has_key item = dict |> IntDict.has item in
+  QCheck.Test.make ~count ~name:"add_from_list_has_key" generate_assoc_list
+    (fun lst ->
+      let dict = lst |> IntDict.of_list in
+      let has_key (item, _) = dict |> IntDict.has item in
       let has_all = lst |> List.map has_key |> List.fold_left ( && ) true in
       has_all)
 
 let of_list_to_list_is_identity =
   QCheck.Test.make ~count ~name:"of_list_to_list_is_identity"
-    QCheck.(list int)
-    (fun lst_raw ->
-      let lst = lst_raw |> List.sort_uniq Int.compare in
-      let lst_assoc = lst |> to_assoc_lst in
-      let dict = lst_assoc |> IntDict.of_list in
+    generate_assoc_list (fun lst ->
+      let sort_by_key (k, _) (k', _) = Int.compare k k' in
+      let lst_sorted = List.sort_uniq sort_by_key lst in
+      let dict = lst |> IntDict.of_list in
       let lst1 = dict |> IntDict.to_list in
-      lst_assoc = lst1)
+      lst_sorted = lst1)
 
 let merge_empty_is_neutral =
   QCheck.Test.make ~count ~name:"dict >>= Empty = Empty >>= dict = dict"
-    QCheck.(list int)
-    (fun l1_raw ->
-      let d1 = l1_raw |> raw_to_sorted_assoc |> IntDict.of_list in
+    generate_assoc_list (fun l1 ->
+      let d1 = l1 |> IntDict.of_list in
       let d2 = IntDict.empty in
       let d = d1 >>= d2 in
       let d' = d1 >>= d2 in
@@ -44,65 +36,60 @@ let merge_empty_is_neutral =
 
 let merge_is_associative =
   QCheck.Test.make ~count ~name:"(x >>= y) >>= z = x >>= (y >>= z)"
-    QCheck.(triple (list int) (list int) (list int))
+    QCheck.(triple generate_assoc_list generate_assoc_list generate_assoc_list)
     (fun (l1_raw, l2_raw, l3_raw) ->
-      let d1 = raw_to_dict l1_raw in
-      let d2 = raw_to_dict l2_raw in
-      let d3 = raw_to_dict l3_raw in
+      let d1 = IntDict.of_list l1_raw in
+      let d2 = IntDict.of_list l2_raw in
+      let d3 = IntDict.of_list l3_raw in
       let r1 = d1 >>= d2 >>= d3 in
       let r2 = d1 >>= (d2 >>= d3) in
       r1 ^-^ r2)
 
 let fold_left_is_to_list =
   QCheck.Test.make ~count ~name:"fold with concat is the same as to_list"
-    QCheck.(list int)
-    (fun l_raw ->
-      let d = raw_to_dict l_raw in
+    generate_assoc_list (fun lst ->
+      let d = lst |> IntDict.of_list in
       let l = d |> IntDict.to_list |> List.rev in
       let l' = IntDict.fold_left (fun acc kv -> kv :: acc) [] d in
       l = l')
 
 let fold_right_is_to_list_rev =
-  QCheck.Test.make ~count ~name:"fold_right is to list"
-    QCheck.(list int)
-    (fun l_raw ->
-      let d = raw_to_dict l_raw in
+  QCheck.Test.make ~count ~name:"fold_right is to list" generate_assoc_list
+    (fun lst ->
+      let d = IntDict.of_list lst in
       let l = d |> IntDict.to_list in
       let l' = IntDict.fold_right (fun kv acc -> kv :: acc) [] d in
       l = l')
 
 let no_find_after_remove =
   QCheck.Test.make ~count ~name:"can't find key after remove"
-    QCheck.(pair (list int) int)
-    (fun (l_raw, elem) ->
-      QCheck.assume (List.find_opt (fun x -> x = elem) l_raw |> Option.is_some);
-      let d = raw_to_dict l_raw in
+    QCheck.(pair generate_assoc_list int)
+    (fun (lst, elem) ->
+      let d = IntDict.of_list lst in
+      QCheck.assume (IntDict.has elem d = true);
       let d' = IntDict.remove elem d in
       let has = IntDict.has elem d' in
       has = false)
 
 let filter_false =
   QCheck.Test.make ~count ~name:"filter(false) is always empty"
-    QCheck.(list int)
-    (fun l_raw ->
-      let d = raw_to_dict l_raw in
+    generate_assoc_list (fun lst ->
+      let d = IntDict.of_list lst in
       let d_filtered = d |> IntDict.filter (fun _ -> false) in
       IntDict.is_empty d_filtered)
 
 let filter_true =
   QCheck.Test.make ~count ~name:"filter(true) is the same dict"
-    QCheck.(list int)
-    (fun l_raw ->
-      let d = raw_to_dict l_raw in
+    generate_assoc_list (fun lst ->
+      let d = IntDict.of_list lst in
       let d_filtered = d |> IntDict.filter (fun _ -> true) in
       d_filtered ^-^ d)
 
 let equals_for_same_lists =
   QCheck.Test.make ~count ~name:"l |> of_dist = l |> of_dict"
-    QCheck.(list int)
-    (fun l_raw ->
-      let d1 = raw_to_dict l_raw in
-      let d2 = raw_to_dict l_raw in
+    generate_assoc_list (fun l_raw ->
+      let d1 = IntDict.of_list l_raw in
+      let d2 = IntDict.of_list l_raw in
       d1 ^-^ d2)
 
 let () =
